@@ -28,7 +28,7 @@ namespace PocketGarden.Quests
         public static event System.Action OnQuestUpdated;
         public static event System.Action<Quest> OnQuestComplete;
 
-        private const int TotalQuests = 22;
+        private const int TotalQuests = 50;
 
         private static readonly string[] GardenNames = { "Seed", "Sprout", "Flower", "Bush", "Tree", "Big Tree", "Magic Tree" };
         private static readonly string[] WoodNames   = { "Twig", "Log", "Plank", "Crate", "Furniture", "Gazebo", "House" };
@@ -37,45 +37,73 @@ namespace PocketGarden.Quests
         private static readonly Quest[] AllQuests = BuildQuests();
 
         /// <summary>
-        /// Builds a 22-quest ladder using all 21 items (7 levels × 3 chains):
-        ///   • q1-6:   Hook phase — Garden only (levels 1-7), fast progression
-        ///   • q7:     Wood unlock at quest 6
-        ///   • q8-14:  Wood phase — Garden/Wood mix, introduce building
-        ///   • q15:    Stone unlock at quest 11
-        ///   • q16-22: Stone phase + Grind — all chains, higher levels, gem milestones
-        /// Each chain fully exercised: every item level appears at least once.
+        /// Builds a 50-quest ladder using all 21 items with creative descriptions:
+        ///   • q1-10:   Hook phase — Garden only, narrative-driven, easy hook
+        ///   • q11:     Wood unlock
+        ///   • q12-30:  Wood phase — mix Garden/Wood, creative building quests
+        ///   • q31:     Stone unlock
+        ///   • q32-50:  Stone phase + Grind — all chains, epic descriptions, gem rewards
+        /// Creative quest types: harvest, craft, decorate, gather for compost, build structures, etc.
         /// </summary>
         private static Quest[] BuildQuests()
         {
             var list = new List<Quest>(TotalQuests);
 
-            // q1-6: Hook — all Garden levels 1-7 (spread)
-            list.Add(Quest("q1", "garden_1", 1, 20, 0, "Harvest a Seed"));
-            list.Add(Quest("q2", "garden_2", 1, 30, 2, "Grow a Sprout"));
-            list.Add(Quest("q3", "garden_3", 2, 45, 0, "Pick 2 Flowers"));
-            list.Add(Quest("q4", "garden_4", 1, 50, 3, "Tend a Bush"));
-            list.Add(Quest("q5", "garden_5", 1, 60, 0, "Plant a Tree"));
-            list.Add(Quest("q6", "garden_6", 1, 75, 5, "Grow a Big Tree", MergeChain.Wood));
+            // q1-10: Hook — Garden foundation with narrative
+            list.Add(Quest("q1", "garden_1", 1, 20, 0, "🌱 Plant your first seed"));
+            list.Add(Quest("q2", "garden_2", 1, 30, 2, "🌿 Nurture a sprout into growth"));
+            list.Add(Quest("q3", "garden_3", 2, 45, 0, "🌸 Pick 2 flowers for a bouquet"));
+            list.Add(Quest("q4", "garden_4", 1, 50, 3, "🪴 Tend a bush in your garden"));
+            list.Add(Quest("q5", "garden_5", 1, 60, 0, "🌳 Plant a mature tree"));
+            list.Add(Quest("q6", "garden_6", 1, 75, 5, "🌲 Grow a Big Tree — lumber incoming"));
+            list.Add(Quest("q7", "garden_2", 2, 80, 0, "🌿 Cultivate 2 sprouts for medicine"));
+            list.Add(Quest("q8", "garden_3", 3, 90, 3, "🌸 Gather 3 flowers for the town"));
+            list.Add(Quest("q9", "garden_1", 4, 100, 0, "🌱 Harvest 4 seeds for next season"));
+            list.Add(Quest("q10", "garden_4", 2, 110, 2, "🪴 Shape 2 bushes into hedges", MergeChain.Wood));
 
-            // q7-14: Wood phase — Wood levels 1-7 + more Garden
-            list.Add(Quest("q7", "wood_1", 2, 80, 0, "Collect 2 Twigs"));
-            list.Add(Quest("q8", "garden_7", 1, 100, 3, "Complete the Magic Tree"));
-            list.Add(Quest("q9", "wood_2", 2, 110, 0, "Craft 2 Logs"));
-            list.Add(Quest("q10", "wood_3", 1, 120, 4, "Make a Plank"));
-            list.Add(Quest("q11", "garden_1", 3, 130, 0, "Gather 3 Seeds (for compost)", MergeChain.Stone));
-            list.Add(Quest("q12", "wood_4", 1, 140, 0, "Build a Crate"));
-            list.Add(Quest("q13", "wood_5", 2, 160, 5, "Craft 2 Furniture pieces"));
-            list.Add(Quest("q14", "wood_6", 1, 180, 0, "Construct a Gazebo"));
+            // q11-30: Wood phase — crafting and building
+            list.Add(Quest("q11", "wood_1", 2, 120, 0, "🪵 Gather 2 twigs for kindling"));
+            list.Add(Quest("q12", "garden_7", 1, 130, 4, "🌳 Harvest the Magic Tree's blessing"));
+            list.Add(Quest("q13", "wood_2", 2, 140, 0, "🪓 Fell 2 logs for the sawmill"));
+            list.Add(Quest("q14", "wood_3", 1, 150, 3, "📏 Plane a log into perfect planks"));
+            list.Add(Quest("q15", "garden_1", 3, 160, 0, "🌱 Collect 3 seeds for compost pile"));
+            list.Add(Quest("q16", "wood_4", 2, 170, 0, "📦 Craft 2 crates for storage"));
+            list.Add(Quest("q17", "garden_5", 2, 180, 5, "🌳 Plant 2 trees to shade your home"));
+            list.Add(Quest("q18", "wood_5", 2, 190, 0, "🪑 Handcraft 2 pieces of furniture"));
+            list.Add(Quest("q19", "wood_1", 3, 200, 2, "🪵 Collect 3 twigs for the craftsman"));
+            list.Add(Quest("q20", "wood_6", 1, 210, 0, "🏕️ Construct a gazebo for gatherings"));
+            list.Add(Quest("q21", "garden_2", 3, 220, 0, "🌿 Grow 3 sprouts for the apothecary"));
+            list.Add(Quest("q22", "wood_2", 3, 230, 4, "🪓 Bring 3 logs to the builder"));
+            list.Add(Quest("q23", "garden_6", 1, 240, 0, "🌲 Nurture another Big Tree"));
+            list.Add(Quest("q24", "wood_3", 2, 250, 0, "📏 Cut 2 planks for the roof"));
+            list.Add(Quest("q25", "garden_3", 4, 260, 3, "🌸 Gather 4 flowers for decoration"));
+            list.Add(Quest("q26", "wood_4", 2, 270, 0, "📦 Build 2 storage crates"));
+            list.Add(Quest("q27", "wood_5", 1, 280, 5, "🪑 Craft a beautiful chair"));
+            list.Add(Quest("q28", "garden_4", 2, 290, 0, "🪴 Shape 2 bushes into topiary"));
+            list.Add(Quest("q29", "wood_6", 1, 300, 0, "🏕️ Complete a second gazebo"));
+            list.Add(Quest("q30", "stone_1", 2, 310, 0, "💎 Place 2 pebbles as foundation", MergeChain.Stone));
 
-            // q15-22: Stone phase + Grind — Stone levels 1-7 + mix
-            list.Add(Quest("q15", "stone_1", 2, 200, 0, "Place 2 Pebbles"));
-            list.Add(Quest("q16", "wood_7", 1, 220, 8, "Build the House"));
-            list.Add(Quest("q17", "stone_2", 2, 240, 0, "Lay 2 Stones"));
-            list.Add(Quest("q18", "stone_3", 1, 260, 5, "Make a Brick wall"));
-            list.Add(Quest("q19", "garden_2", 2, 280, 0, "Replant 2 Sprouts"));
-            list.Add(Quest("q20", "stone_4", 1, 300, 0, "Build a Wall"));
-            list.Add(Quest("q21", "stone_5", 1, 350, 10, "Raise a Pillar"));
-            list.Add(Quest("q22", "stone_6", 1, 400, 0, "Complete the Fountain"));
+            // q31-50: Stone phase + Grind — monuments and epic structures
+            list.Add(Quest("q31", "stone_1", 2, 320, 0, "💎 Place 2 pebbles as foundation"));
+            list.Add(Quest("q32", "wood_7", 1, 330, 8, "🏠 Finish building the Great House"));
+            list.Add(Quest("q33", "stone_2", 2, 340, 0, "🪨 Lay 2 stones for the path"));
+            list.Add(Quest("q34", "stone_3", 2, 350, 5, "🧱 Craft 2 bricks for the walls"));
+            list.Add(Quest("q35", "garden_2", 2, 360, 0, "🌿 Grow 2 sprouts for the harvest"));
+            list.Add(Quest("q36", "stone_4", 1, 370, 0, "🏰 Build a stone wall around town"));
+            list.Add(Quest("q37", "wood_1", 4, 380, 3, "🪵 Gather 4 twigs for the town"));
+            list.Add(Quest("q38", "stone_2", 3, 390, 0, "🪨 Lay 3 stones for the plaza"));
+            list.Add(Quest("q39", "garden_3", 2, 400, 4, "🌸 Collect 2 flowers for the shrine"));
+            list.Add(Quest("q40", "stone_5", 1, 410, 0, "🏛️ Raise a pillar for the temple"));
+            list.Add(Quest("q41", "wood_3", 2, 420, 5, "📏 Prepare 2 planks for the bridge"));
+            list.Add(Quest("q42", "stone_3", 3, 430, 0, "🧱 Stack 3 bricks for the tower"));
+            list.Add(Quest("q43", "garden_1", 5, 440, 0, "🌱 Harvest 5 seeds for the archive"));
+            list.Add(Quest("q44", "stone_4", 2, 450, 6, "🏰 Build 2 walls for the fortress"));
+            list.Add(Quest("q45", "wood_2", 4, 460, 0, "🪓 Mill 4 logs into boards"));
+            list.Add(Quest("q46", "stone_5", 2, 470, 8, "🏛️ Raise 2 pillars for the palace"));
+            list.Add(Quest("q47", "garden_5", 2, 480, 0, "🌳 Plant 2 trees for the royal garden"));
+            list.Add(Quest("q48", "wood_7", 1, 490, 5, "🏠 Construct the Estate"));
+            list.Add(Quest("q49", "stone_6", 1, 500, 15, "⛲ Complete the Fountain — masterpiece"));
+            list.Add(Quest("q50", "garden_7", 1, 510, 10, "🌳 Harness the Magic Tree's ultimate power"));
 
             return list.ToArray();
         }

@@ -60,19 +60,9 @@ namespace PocketGarden.UI
         {
             if (!CanShow()) return;
 
-            // Entering Stone phase - offer the one-time Starter once.
-            if (Progression.CompletedQuests == 11 && PlayerPrefs.GetInt(StarterOfferedKey, 0) == 0)
-            {
-                PlayerPrefs.SetInt(StarterOfferedKey, 1);
-                PlayerPrefs.Save();
-                ShowOffer(ShopCatalog.Get("starter"),
-                    "New chains, new challenges!",
-                    "Grab the one-time Starter Pack to power through.");
-                return;
-            }
-
             // Entering the grind - offer the value bundle to maintain pace.
-            if (Progression.CompletedQuests == 17)
+            // Stone unlocks at q30, so q31+ is where we target the bundle.
+            if (Progression.CompletedQuests == 30)
             {
                 ShowOffer(ShopCatalog.Get("growth_bundle"),
                     "The big builds begin!",

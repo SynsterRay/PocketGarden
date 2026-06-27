@@ -1,0 +1,19 @@
+{
+  "time": "2026-06-27T12:33:59.271+02:00",
+  "session": "PocketGarden session completed.",
+  "changes": [
+    "Generator spawns randomly on random board slots (FindEmptyCell returns random)",
+    "Generator relocates every 15 seconds (MoveInterval) to new random cell",
+    "Gem-skip button in HUD (⏭) - only way to skip generator cooldown",
+    "Removed gem-skip from tapping generator on board",
+    "Quest variety: tiered chain access (1-20 Garden, 21-50 Garden/Wood, 51-100 balanced)",
+    "Level/amount ramping improved, gems only early + milestones",
+    "Fill-board button (📦) costs rows*cols*10 gems, spawns random unlocked items"
+  ],
+  "commits": [
+    "d17d7d7 - Fix NullReferenceException",
+    "f7b81bf - Random spawn, generator move every 15s, gem-skip HUD",
+    "0c12a5f - Quest tiered access, variety",
+    "9963525 - Duplicate button fix, final polish"
+  ]
+}
