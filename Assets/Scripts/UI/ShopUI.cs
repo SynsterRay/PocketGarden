@@ -61,7 +61,8 @@ namespace PocketGarden.UI
                     GemConfirmPopup.Show("Not enough coins", 0, null);
                     return;
                 }
-                if (CurrencyEconomy.BuyEnergyWithCoins());
+                if (CurrencyEconomy.BuyEnergyWithCoins())
+                    CoinSystem.OnCoinsChanged?.Invoke(CoinSystem.Coins);
             });
 
             // Rewarded ad (footer, fixed)
