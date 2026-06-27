@@ -28,13 +28,13 @@ namespace PocketGarden.Quests
         public static event System.Action OnQuestUpdated;
         public static event System.Action<Quest> OnQuestComplete;
 
-        private static readonly Quest[] AllQuests = BuildQuests();
-
         private const int TotalQuests = 100;
 
         private static readonly string[] GardenNames = { "Seed", "Sprout", "Flower", "Bush", "Tree", "Big Tree", "Magic Tree" };
         private static readonly string[] WoodNames   = { "Twig", "Log", "Plank", "Crate", "Furniture", "Gazebo", "House" };
         private static readonly string[] StoneNames  = { "Pebble", "Stone", "Brick", "Wall", "Pillar", "Fountain", "Castle" };
+
+        private static readonly Quest[] AllQuests = BuildQuests();
 
         /// <summary>
         /// Builds a 100-quest ladder procedurally with a gentle ramp:
