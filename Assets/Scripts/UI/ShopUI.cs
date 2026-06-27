@@ -50,6 +50,21 @@ namespace PocketGarden.UI
                     () => GemEconomy.TryRefillEnergy());
             });
 
+            // Buy energy with coins (footer)
+            var coinRefill = UIFactory.Button(_panel.transform, $"🪙 Buy Energy  =  {CurrencyEconomy.CoinEnergyRefillCost} coins",
+                new Vector2(0.12f, 0.075f), new Vector2(0.88f, 0.135f), UIFactory.Gold, 22, UIFactory.Ink);
+            coinRefill.onClick.AddListener(() =>
+            {
+                if (EnergySystem.IsFull) return;
+                if (!CurrencyEconomy.CanAffordCoins(CurrencyEconomy.CoinEnergyRefillCost))
+                {
+                    GemConfirmPopup.Show("Not enough coins", 0, null);
+                    return;
+                }
+                if (CurrencyEconomy.BuyEnergyWithCoins())
+                    CoinSystem.OnCoinsChanged?.Invoke(CoinSystem.Coins);
+            });
+
             // Rewarded ad (footer, fixed)
             var ad = UIFactory.Button(_panel.transform, "▶  Watch Ad  =  +10 Energy",
                 new Vector2(0.12f, 0.05f), new Vector2(0.88f, 0.12f), UIFactory.Gold, 22, UIFactory.Ink);
