@@ -131,11 +131,26 @@ namespace PocketGarden.Grid
             return db;
         }
 
+        // Screen fractions reserved by UI (so the board never hides behind them):
+        //   top    → HudBar sits at 0.925–1.0; reserve to ~0.90 (small margin).
+        //   bottom → QuestCard (0.095–0.205) + DropZone (0.015–0.085); reserve to ~0.23.
+        private const float TopReserveFrac = 0.90f;
+        private const float BottomReserveFrac = 0.23f;
+
         private void BuildGrid()
         {
             _cells = new GridCell[rows, cols];
+
+            // Vertically center the grid inside the visible play band (between HUD and quests),
+            // instead of centering on the whole screen, so the bottom rows don't hide behind UI.
+            var cam = UnityEngine.Camera.main;
+            float halfH = cam != null ? cam.orthographicSize : 5.5f;
+            float bandTop = halfH * (2f * TopReserveFrac - 1f);
+            float bandBottom = halfH * (2f * BottomReserveFrac - 1f);
+            float bandCenterY = (bandTop + bandBottom) * 0.5f;
+
             float startX = -(cols - 1) * cellSize * 0.5f;
-            float startY = (rows - 1) * cellSize * 0.5f - 1f; // offset down for UI
+            float startY = bandCenterY + (rows - 1) * cellSize * 0.5f; // top row, centered in band
 
             for (int r = 0; r < rows; r++)
             {
