@@ -45,14 +45,26 @@ namespace PocketGarden.Core
             var list = new List<MergeItemData>();
 
             // Garden chain - greens
-            string[] gardenNames = { "Seed", "Sprout", "Bush", "Flower", "Tree", "Big Tree", "Magic Tree" };
+            string[] gardenNames = { "Seed", "Sprout", "Flower", "Bush", "Tree", "Big Tree", "Magic Tree" };
             for (int i = 0; i < gardenNames.Length; i++)
-                list.Add(new MergeItemData
+            {
+                var item = new MergeItemData
                 {
                     id = $"garden_{i + 1}", chain = MergeChain.Garden, level = i + 1,
                     displayName = gardenNames[i],
+                    icon = Resources.Load<Sprite>($"Items/garden_{i + 1}"),
                     fallbackColor = Color.Lerp(new Color(0.6f, 0.9f, 0.3f), new Color(0.1f, 0.5f, 0.1f), i / 6f)
-                });
+                };
+                // Option A: mature trees (Tree=Lv5, Big Tree=Lv6, Magic Tree=Lv7)
+                // produce Log (wood_2), faster as the tree matures.
+                switch (i + 1)
+                {
+                    case 5: item.producesItemId = "wood_2"; item.produceCooldown = 60f; break;
+                    case 6: item.producesItemId = "wood_2"; item.produceCooldown = 45f; break;
+                    case 7: item.producesItemId = "wood_2"; item.produceCooldown = 30f; break;
+                }
+                list.Add(item);
+            }
 
             // Wood chain - browns
             string[] woodNames = { "Twig", "Log", "Plank", "Crate", "Furniture", "Gazebo", "House" };
@@ -61,6 +73,7 @@ namespace PocketGarden.Core
                 {
                     id = $"wood_{i + 1}", chain = MergeChain.Wood, level = i + 1,
                     displayName = woodNames[i],
+                    icon = Resources.Load<Sprite>($"Items/wood_{i + 1}"),
                     fallbackColor = Color.Lerp(new Color(0.8f, 0.6f, 0.3f), new Color(0.4f, 0.2f, 0.05f), i / 6f)
                 });
 
@@ -71,6 +84,7 @@ namespace PocketGarden.Core
                 {
                     id = $"stone_{i + 1}", chain = MergeChain.Stone, level = i + 1,
                     displayName = stoneNames[i],
+                    icon = Resources.Load<Sprite>($"Items/stone_{i + 1}"),
                     fallbackColor = Color.Lerp(new Color(0.7f, 0.7f, 0.7f), new Color(0.3f, 0.3f, 0.4f), i / 6f)
                 });
 

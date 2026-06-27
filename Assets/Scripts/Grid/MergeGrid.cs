@@ -55,12 +55,48 @@ namespace PocketGarden.Grid
 
         private void SpawnGenerators()
         {
-            // Garden generator at cell [0,4]
-            AddGenerator(0, 4, "garden_1", 30f, 50);
-            // Wood generator at cell [3,4] (unlocked after quest 3)
-            AddGenerator(3, 4, "wood_1", 45f, 40);
-            // Stone generator at cell [6,4]
-            AddGenerator(6, 4, "stone_1", 60f, 30);
+            // Only spawn generators for chains the player has unlocked.
+            // Garden is always available; Wood/Stone unlock via quest progression.
+            TrySpawnGenerator(MergeChain.Garden);
+            TrySpawnGenerator(MergeChain.Wood);
+            TrySpawnGenerator(MergeChain.Stone);
+
+            // React to chains unlocked later (during play) by dropping in their generator.
+            Progression.OnChainUnlocked += OnChainUnlocked;
+        }
+
+        private void OnDestroy()
+        {
+            Progression.OnChainUnlocked -= OnChainUnlocked;
+        }
+
+        private void OnChainUnlocked(MergeChain chain) => TrySpawnGenerator(chain);
+
+        private void TrySpawnGenerator(MergeChain chain)
+        {
+            if (!Progression.IsChainUnlocked(chain)) return;
+
+            // Avoid duplicates if called again after a runtime unlock.
+            string itemId = chain switch
+            {
+                MergeChain.Wood => "wood_1",
+                MergeChain.Stone => "stone_1",
+                _ => "garden_1"
+            };
+            foreach (var g in _generators)
+                if (g != null && g.name == $"Gen_{itemId}") return;
+
+            (int row, int col) = chain switch
+            {
+                MergeChain.Garden => (0, 4),
+                MergeChain.Wood => (3, 4),
+                MergeChain.Stone => (6, 4),
+                _ => (0, 4)
+            };
+
+            AddGenerator(row, col, itemId,
+                Progression.GeneratorCooldown(chain),
+                Progression.GeneratorUses(chain));
         }
 
         private void AddGenerator(int row, int col, string itemId, float cooldown, int uses)
@@ -127,14 +163,14 @@ namespace PocketGarden.Grid
 
         private void SpawnStarterItems()
         {
-            // Spawn a few starter items for prototype
-            SpawnItem("garden_1", 0, 0);
-            SpawnItem("garden_1", 0, 1);
+            // Front-loaded Garden start so the player can merge immediately and feel progress.
+            // Wood/Stone are locked at first, so we don't seed items the player can't yet sustain.
+            SpawnItem("garden_2", 0, 0); // a couple of Sprouts for a near-instant first merge
+            SpawnItem("garden_2", 0, 1);
             SpawnItem("garden_1", 1, 0);
-            SpawnItem("wood_1", 2, 2);
-            SpawnItem("wood_1", 3, 2);
-            SpawnItem("stone_1", 4, 4);
-            SpawnItem("stone_1", 5, 4);
+            SpawnItem("garden_1", 1, 1);
+            SpawnItem("garden_1", 1, 2);
+            SpawnItem("garden_1", 2, 0);
         }
 
         public MergeGridItem SpawnItem(string itemId, int row, int col)

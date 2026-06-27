@@ -144,6 +144,15 @@ namespace PocketGarden.Grid
             if (targetCell != null && targetCell != _originCell)
                 success = _grid.TryMerge(_dragging, targetCell);
 
+            // Tap (no move/merge) on a ready producer item → produce
+            if (!success && _dragging != null
+                && (targetCell == null || targetCell == _originCell)
+                && _dragging.IsProducerReady)
+            {
+                if (_dragging.TryProduce())
+                    SaveSystem.SaveGrid(_grid);
+            }
+
             if (!success && _dragging != null)
                 _dragging.transform.position = _originCell.transform.position;
 

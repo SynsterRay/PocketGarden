@@ -4,20 +4,21 @@ using PocketGarden.Core;
 
 namespace PocketGarden.UI
 {
+    /// <summary>
+    /// Scrollable shop. Uses a ScrollRect so any number of SKUs fits without overflowing the
+    /// screen. Each row is a rounded card: name + contents on the left, price button on the
+    /// right, optional value tag. Purchases route through IAPManager (with an Editor fallback).
+    /// </summary>
     public class ShopUI : MonoBehaviour
     {
         private GameObject _panel;
         private bool _visible;
 
-        public void Toggle()
-        {
-            if (_visible) Hide();
-            else Show();
-        }
+        public void Toggle() { if (_visible) Hide(); else Show(); }
 
         public void Show()
         {
-            if (_panel != null) { _panel.SetActive(true); _visible = true; return; }
+            if (_panel != null) { _panel.SetActive(true); _panel.transform.SetAsLastSibling(); _visible = true; return; }
 
             var canvas = FindAnyObjectByType<Canvas>();
             if (canvas == null) return;
@@ -25,75 +26,24 @@ namespace PocketGarden.UI
             _panel = new GameObject("ShopPanel");
             _panel.transform.SetParent(canvas.transform, false);
             _panel.transform.SetAsLastSibling();
-
             var bg = _panel.AddComponent<Image>();
-            bg.color = new Color(1f, 1f, 1f, 0.97f);
-            var rect = _panel.GetComponent<RectTransform>();
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            bg.color = UIFactory.Cream;
+            UIFactory.Stretch(_panel.GetComponent<RectTransform>(), Vector2.zero, Vector2.one);
 
-            // Title
-            CreateText("Shop", _panel.transform, new Vector2(0.3f, 0.88f), new Vector2(0.7f, 0.95f), 36,
-                new Color(0.2f, 0.5f, 0.2f));
+            // Header
+            UIFactory.Text(_panel.transform, "🛒 Shop", new Vector2(0.08f, 0.90f),
+                new Vector2(0.7f, 0.97f), 40, UIFactory.LeafDark, TextAnchor.MiddleLeft);
+            var close = UIFactory.Button(_panel.transform, "✕", new Vector2(0.82f, 0.905f),
+                new Vector2(0.94f, 0.965f), UIFactory.Danger, 28);
+            close.onClick.AddListener(Hide);
 
-            // Items
-            float y = 0.80f;
-            foreach (var item in ShopCatalog.Items)
-            {
-                float yBottom = y - 0.08f;
-                CreateText($"{item.displayName}  —  {item.priceLabel}", _panel.transform,
-                    new Vector2(0.08f, yBottom), new Vector2(0.72f, y), 22, new Color(0.2f, 0.2f, 0.2f));
+            // Scroll view (between header and the ad/close footer)
+            BuildScrollList(_panel.transform, new Vector2(0.04f, 0.17f), new Vector2(0.96f, 0.89f));
 
-                // Buy button
-                var btnGo = new GameObject($"Buy_{item.id}");
-                btnGo.transform.SetParent(_panel.transform, false);
-                var btnImg = btnGo.AddComponent<Image>();
-                btnImg.color = new Color(0.2f, 0.7f, 0.3f);
-                var btn = btnGo.AddComponent<Button>();
-                var btnRect = btnGo.GetComponent<RectTransform>();
-                btnRect.anchorMin = new Vector2(0.75f, yBottom);
-                btnRect.anchorMax = new Vector2(0.92f, y);
-                btnRect.offsetMin = Vector2.zero;
-                btnRect.offsetMax = Vector2.zero;
-
-                CreateText("Buy", btnGo.transform, Vector2.zero, Vector2.one, 20, Color.white);
-
-                var captured = item;
-                btn.onClick.AddListener(() => OnBuy(captured));
-
-                y -= 0.10f;
-            }
-
-            // Rewarded ad button
-            float adY = y - 0.02f;
-            var adBtnGo = new GameObject("AdBtn");
-            adBtnGo.transform.SetParent(_panel.transform, false);
-            var adImg = adBtnGo.AddComponent<Image>();
-            adImg.color = new Color(0.8f, 0.6f, 0.1f);
-            var adBtn = adBtnGo.AddComponent<Button>();
-            var adRect = adBtnGo.GetComponent<RectTransform>();
-            adRect.anchorMin = new Vector2(0.2f, adY - 0.06f);
-            adRect.anchorMax = new Vector2(0.8f, adY);
-            adRect.offsetMin = Vector2.zero;
-            adRect.offsetMax = Vector2.zero;
-            CreateText("▶ Watch Ad = +5 Energy", adBtnGo.transform, Vector2.zero, Vector2.one, 22, Color.white);
-            adBtn.onClick.AddListener(OnWatchAd);
-
-            // Close button
-            var closeGo = new GameObject("CloseBtn");
-            closeGo.transform.SetParent(_panel.transform, false);
-            var closeImg = closeGo.AddComponent<Image>();
-            closeImg.color = new Color(0.8f, 0.2f, 0.2f);
-            var closeBtn = closeGo.AddComponent<Button>();
-            var closeRect = closeGo.GetComponent<RectTransform>();
-            closeRect.anchorMin = new Vector2(0.35f, 0.03f);
-            closeRect.anchorMax = new Vector2(0.65f, 0.09f);
-            closeRect.offsetMin = Vector2.zero;
-            closeRect.offsetMax = Vector2.zero;
-            CreateText("Close", closeGo.transform, Vector2.zero, Vector2.one, 24, Color.white);
-            closeBtn.onClick.AddListener(Hide);
+            // Rewarded ad (footer, fixed)
+            var ad = UIFactory.Button(_panel.transform, "▶  Watch Ad  =  +10 Energy",
+                new Vector2(0.12f, 0.05f), new Vector2(0.88f, 0.13f), UIFactory.Gold, 24, UIFactory.Ink);
+            ad.onClick.AddListener(OnWatchAd);
 
             _visible = true;
         }
@@ -104,41 +54,90 @@ namespace PocketGarden.UI
             _visible = false;
         }
 
+        private void BuildScrollList(Transform parent, Vector2 min, Vector2 max)
+        {
+            // Scroll root
+            var scrollGo = new GameObject("Scroll", typeof(RectTransform));
+            scrollGo.transform.SetParent(parent, false);
+            UIFactory.Stretch(scrollGo.GetComponent<RectTransform>(), min, max);
+            scrollGo.AddComponent<RectMask2D>();
+            var scroll = scrollGo.AddComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Elastic;
+            scroll.scrollSensitivity = 25f;
+
+            // Content
+            var content = new GameObject("Content", typeof(RectTransform));
+            content.transform.SetParent(scrollGo.transform, false);
+            var cRect = content.GetComponent<RectTransform>();
+            cRect.anchorMin = new Vector2(0f, 1f);
+            cRect.anchorMax = new Vector2(1f, 1f);
+            cRect.pivot = new Vector2(0.5f, 1f);
+            cRect.sizeDelta = Vector2.zero;
+            var layout = content.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 14f;
+            layout.padding = new RectOffset(10, 10, 10, 10);
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            layout.childControlHeight = true;
+            layout.childControlWidth = true;
+            var fitter = content.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            scroll.content = cRect;
+
+            foreach (var item in ShopCatalog.Items)
+                CreateRow(content.transform, item);
+        }
+
+        private void CreateRow(Transform parent, ShopItem item)
+        {
+            var row = UIFactory.Panel(parent, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0.95f), $"Row_{item.id}");
+            row.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1f);
+            var le = row.AddComponent<LayoutElement>();
+            le.preferredHeight = 150f;
+
+            // Name (top-left)
+            UIFactory.Text(row.transform, item.displayName, new Vector2(0.04f, 0.50f),
+                new Vector2(0.66f, 0.92f), 26, UIFactory.Ink, TextAnchor.LowerLeft);
+
+            // Contents summary (bottom-left)
+            var sb = new System.Text.StringBuilder();
+            if (item.energyAmount > 0) sb.Append($"⚡{item.energyAmount}  ");
+            if (item.gemAmount > 0) sb.Append($"💎{item.gemAmount}  ");
+            if (item.coinAmount > 0) sb.Append($"🪙{item.coinAmount}");
+            if (sb.Length > 0)
+                UIFactory.Text(row.transform, sb.ToString(), new Vector2(0.04f, 0.12f),
+                    new Vector2(0.66f, 0.48f), 20, new Color(0.4f, 0.4f, 0.4f), TextAnchor.UpperLeft);
+
+            // Value tag badge
+            if (!string.IsNullOrEmpty(item.tag))
+                UIFactory.Text(row.transform, item.tag, new Vector2(0.04f, 0.0f),
+                    new Vector2(0.4f, 0.12f), 16, new Color(0.85f, 0.45f, 0.1f), TextAnchor.LowerLeft);
+
+            // Price button (right)
+            var buy = UIFactory.Button(row.transform, item.priceLabel, new Vector2(0.70f, 0.18f),
+                new Vector2(0.97f, 0.82f), UIFactory.Leaf, 26);
+            var captured = item;
+            buy.onClick.AddListener(() => OnBuy(captured));
+        }
+
         private void OnBuy(ShopItem item)
         {
-            // TODO: Wire to Unity Purchasing IAP
-            // For now, grant items directly (prototype)
-            Debug.Log($"[Shop] Purchase: {item.iapProductId}");
-            if (item.energyAmount > 0) EnergySystem.Add(item.energyAmount);
-            if (item.gemAmount > 0) GemSystem.Add(item.gemAmount);
-            if (item.coinAmount > 0) CoinSystem.Add(item.coinAmount);
+            var iap = IAPManager.Instance;
+            if (iap != null && iap.IsInitialized)
+                iap.BuyProduct(item.iapProductId, _ => { /* UI auto-updates via currency events */ });
+            else
+                ShopCatalog.GrantPurchase(item); // editor / store-unavailable fallback
         }
 
         private void OnWatchAd()
         {
-            // TODO: Wire to AdMob rewarded ad (ShopCatalog.AD_REWARDED)
-            Debug.Log($"[Shop] Rewarded ad: {ShopCatalog.AD_REWARDED}");
-            EnergySystem.Add(5);
-        }
-
-        private Text CreateText(string text, Transform parent, Vector2 anchorMin, Vector2 anchorMax,
-            int fontSize, Color color)
-        {
-            var go = new GameObject("Text");
-            go.transform.SetParent(parent, false);
-            var txt = go.AddComponent<Text>();
-            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            txt.fontSize = fontSize;
-            txt.fontStyle = FontStyle.Bold;
-            txt.alignment = TextAnchor.MiddleCenter;
-            txt.color = color;
-            txt.text = text;
-            var r = go.GetComponent<RectTransform>();
-            r.anchorMin = anchorMin;
-            r.anchorMax = anchorMax;
-            r.offsetMin = Vector2.zero;
-            r.offsetMax = Vector2.zero;
-            return txt;
+            var ads = PocketGarden.Ads.AdManager.Instance;
+            if (ads != null)
+                ads.ShowRewarded(() => EnergySystem.Add(10));
+            else
+                EnergySystem.Add(10); // editor fallback
         }
     }
 }

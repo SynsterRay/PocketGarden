@@ -29,6 +29,8 @@ namespace PocketGarden.Editor
                 gm.AddComponent<Grid.MergeGrid>();
                 gm.AddComponent<Grid.DragDropHandler>();
                 gm.AddComponent<Quests.QuestManager>();
+                gm.AddComponent<Core.IAPManager>();
+                gm.AddComponent<Ads.AdManager>();
             }
 
             // Canvas
@@ -42,10 +44,11 @@ namespace PocketGarden.Editor
                 scaler.referenceResolution = new Vector2(1080f, 1920f);
                 scaler.matchWidthOrHeight = 1f;
                 canvasGo.AddComponent<GraphicRaycaster>();
-                canvasGo.AddComponent<UI.EnergyUI>();
+                canvasGo.AddComponent<UI.HudBar>();
                 canvasGo.AddComponent<UI.QuestUI>();
                 canvasGo.AddComponent<UI.TutorialOverlay>();
                 canvasGo.AddComponent<UI.DailyBonus>();
+                canvasGo.AddComponent<UI.OfferManager>();
             }
 
             // EventSystem (required for UI clicks)

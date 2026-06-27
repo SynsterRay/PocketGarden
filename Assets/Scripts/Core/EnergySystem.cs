@@ -7,7 +7,7 @@ namespace PocketGarden.Core
         private const string EnergyKey = "MG_Energy";
         private const string LastTimeKey = "MG_EnergyTime";
         private const int MaxEnergy = 30;
-        private const int RegenSeconds = 180; // 3 minutes per 1 energy
+        // Regen interval is sourced from Progression.EnergyRegenSeconds (phase-based).
 
         public static event System.Action<int> OnEnergyChanged;
 
@@ -48,13 +48,14 @@ namespace PocketGarden.Core
         public static void Load()
         {
             _energy = PlayerPrefs.GetInt(EnergyKey, MaxEnergy);
+            int regenSeconds = Progression.EnergyRegenSeconds;
             // Calculate offline regen
             string timeStr = PlayerPrefs.GetString(LastTimeKey, "");
             if (!string.IsNullOrEmpty(timeStr) && long.TryParse(timeStr, out long binary))
             {
                 var lastTime = System.DateTime.FromBinary(binary);
                 int elapsed = (int)(System.DateTime.UtcNow - lastTime).TotalSeconds;
-                int regen = elapsed / RegenSeconds;
+                int regen = elapsed / Mathf.Max(1, regenSeconds);
                 if (regen > 0)
                     _energy = Mathf.Min(MaxEnergy, _energy + regen);
             }
@@ -68,9 +69,9 @@ namespace PocketGarden.Core
         {
             if (_energy >= MaxEnergy) return;
             _regenTimer += Time.deltaTime;
-            if (_regenTimer >= RegenSeconds)
+            if (_regenTimer >= Progression.EnergyRegenSeconds)
             {
-                _regenTimer -= RegenSeconds;
+                _regenTimer = 0f;
                 Energy++;
             }
         }

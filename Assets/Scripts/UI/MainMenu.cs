@@ -4,6 +4,7 @@ using PocketGarden.Core;
 
 namespace PocketGarden.UI
 {
+    /// <summary>Settings dialog (dimmed background + centered card). Consistent spacing, no overlap.</summary>
     public class MainMenu : MonoBehaviour
     {
         private GameObject _panel;
@@ -14,103 +15,69 @@ namespace PocketGarden.UI
         private static bool _musicOn = true;
         private static bool _sfxOn = true;
 
-        public void Toggle()
-        {
-            if (_visible) Hide();
-            else Show();
-        }
+        public void Toggle() { if (_visible) Hide(); else Show(); }
 
         public void Show()
         {
-            if (_panel != null) { _panel.SetActive(true); _visible = true; return; }
+            if (_panel != null) { _panel.SetActive(true); _panel.transform.SetAsLastSibling(); _visible = true; return; }
 
             var canvas = FindAnyObjectByType<Canvas>();
             if (canvas == null) return;
 
+            // Dim background
             _panel = new GameObject("MenuPanel");
             _panel.transform.SetParent(canvas.transform, false);
             _panel.transform.SetAsLastSibling();
+            var dim = _panel.AddComponent<Image>();
+            dim.color = new Color(0f, 0f, 0f, 0.55f);
+            UIFactory.Stretch(_panel.GetComponent<RectTransform>(), Vector2.zero, Vector2.one);
 
-            var bg = _panel.AddComponent<Image>();
-            bg.color = new Color(0.95f, 0.98f, 0.92f, 0.98f);
-            var rect = _panel.GetComponent<RectTransform>();
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            // Card
+            var card = UIFactory.Panel(_panel.transform, new Vector2(0.08f, 0.16f),
+                new Vector2(0.92f, 0.88f), UIFactory.Cream, "Card");
 
-            // Title
-            CreateText("⚙️ Settings", _panel.transform,
-                new Vector2(0.2f, 0.85f), new Vector2(0.8f, 0.93f), 36, new Color(0.2f, 0.4f, 0.2f));
+            UIFactory.Text(card.transform, "⚙  Settings", new Vector2(0.05f, 0.88f),
+                new Vector2(0.95f, 0.98f), 36, UIFactory.LeafDark);
 
-            float y = 0.75f;
+            float y = 0.78f;
+            const float h = 0.085f, step = 0.105f;
 
-            // Music toggle
-            _musicText = CreateButton("🎵 Music: ON", _panel.transform, y, () =>
+            _musicText = AddRow(card.transform, "🎵  Music: ON", ref y, h, step, () =>
             {
                 _musicOn = !_musicOn;
-                _musicText.text = _musicOn ? "🎵 Music: ON" : "🎵 Music: OFF";
-                // TODO: wire to AudioListener / MusicManager
+                _musicText.text = _musicOn ? "🎵  Music: ON" : "🎵  Music: OFF";
+                AudioListener.volume = (_musicOn || _sfxOn) ? 1f : 0f; // TODO: split music/SFX buses
             });
-            y -= 0.10f;
 
-            // SFX toggle
-            _sfxText = CreateButton("🔊 SFX: ON", _panel.transform, y, () =>
+            _sfxText = AddRow(card.transform, "🔊  SFX: ON", ref y, h, step, () =>
             {
                 _sfxOn = !_sfxOn;
-                _sfxText.text = _sfxOn ? "🔊 SFX: ON" : "🔊 SFX: OFF";
-                // TODO: wire to SFXManager
+                _sfxText.text = _sfxOn ? "🔊  SFX: ON" : "🔊  SFX: OFF";
             });
-            y -= 0.10f;
 
-            // Language
-            CreateButton("🌐 Language: English", _panel.transform, y, () =>
+            AddRow(card.transform, "🌐  Language: English", ref y, h, step, () =>
             {
-                // TODO: wire to localization system
-                Debug.Log("[Menu] Language toggle");
+                Debug.Log("[Menu] Language toggle"); // TODO: localization
             });
-            y -= 0.10f;
 
-            // Reset energy (debug)
-            CreateButton("⚡ Refill Energy (Debug)", _panel.transform, y, () =>
+            AddRow(card.transform, "⭐  Rate Us", ref y, h, step, () =>
             {
-                EnergySystem.Add(30);
+                Application.OpenURL("https://play.google.com/store/apps/details?id=com.WonderMindsGames.PocketGarden");
             });
-            y -= 0.10f;
 
-            // Reset progress
-            CreateButton("🗑️ Reset Progress", _panel.transform, y, () =>
+            AddRow(card.transform, "ℹ️  Credits: Wonder Minds Games", ref y, h, step, () => { });
+
+            AddRow(card.transform, "🗑️  Reset Progress", ref y, h, step, () =>
             {
                 PlayerPrefs.DeleteAll();
                 PlayerPrefs.Save();
                 Debug.Log("[Menu] Progress reset!");
             });
-            y -= 0.10f;
-
-            // Rate Us
-            CreateButton("⭐ Rate Us", _panel.transform, y, () =>
-            {
-                Application.OpenURL("https://play.google.com/store/apps/details?id=com.WonderMindsGames.PocketGarden");
-            });
-            y -= 0.10f;
-
-            // Credits
-            CreateButton("ℹ️ Credits: Wonder Minds Games", _panel.transform, y, () => { });
-            y -= 0.10f;
 
             // Close
-            var closeGo = new GameObject("CloseBtn");
-            closeGo.transform.SetParent(_panel.transform, false);
-            var closeImg = closeGo.AddComponent<Image>();
-            closeImg.color = new Color(0.7f, 0.3f, 0.3f);
-            var closeBtn = closeGo.AddComponent<Button>();
-            var closeRect = closeGo.GetComponent<RectTransform>();
-            closeRect.anchorMin = new Vector2(0.3f, 0.03f);
-            closeRect.anchorMax = new Vector2(0.7f, 0.09f);
-            closeRect.offsetMin = Vector2.zero;
-            closeRect.offsetMax = Vector2.zero;
-            CreateText("Close", closeGo.transform, Vector2.zero, Vector2.one, 24, Color.white);
-            closeBtn.onClick.AddListener(Hide);
+            var close = UIFactory.Button(card.transform, "Close", new Vector2(0.30f, 0.03f),
+                new Vector2(0.70f, 0.12f), UIFactory.Danger, 24);
+            close.onClick.AddListener(Hide);
 
             _visible = true;
         }
@@ -121,43 +88,13 @@ namespace PocketGarden.UI
             _visible = false;
         }
 
-        private Text CreateButton(string label, Transform parent, float yCenter, System.Action onClick)
+        private Text AddRow(Transform parent, string label, ref float y, float h, float step, System.Action onClick)
         {
-            float h = 0.07f;
-            var go = new GameObject("Btn");
-            go.transform.SetParent(parent, false);
-            var img = go.AddComponent<Image>();
-            img.color = new Color(0.95f, 0.95f, 0.90f);
-            var btn = go.AddComponent<Button>();
-            var r = go.GetComponent<RectTransform>();
-            r.anchorMin = new Vector2(0.1f, yCenter - h * 0.5f);
-            r.anchorMax = new Vector2(0.9f, yCenter + h * 0.5f);
-            r.offsetMin = Vector2.zero;
-            r.offsetMax = Vector2.zero;
+            var btn = UIFactory.Button(parent, label, new Vector2(0.08f, y - h),
+                new Vector2(0.92f, y), new Color(0.93f, 0.95f, 0.88f), 24, UIFactory.Ink);
             btn.onClick.AddListener(() => onClick());
-
-            var txt = CreateText(label, go.transform, Vector2.zero, Vector2.one, 24, new Color(0.2f, 0.2f, 0.2f));
-            return txt;
-        }
-
-        private Text CreateText(string text, Transform parent, Vector2 anchorMin, Vector2 anchorMax,
-            int fontSize, Color color)
-        {
-            var go = new GameObject("Text");
-            go.transform.SetParent(parent, false);
-            var txt = go.AddComponent<Text>();
-            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            txt.fontSize = fontSize;
-            txt.fontStyle = FontStyle.Bold;
-            txt.alignment = TextAnchor.MiddleCenter;
-            txt.color = color;
-            txt.text = text;
-            var r = go.GetComponent<RectTransform>();
-            r.anchorMin = anchorMin;
-            r.anchorMax = anchorMax;
-            r.offsetMin = Vector2.zero;
-            r.offsetMax = Vector2.zero;
-            return txt;
+            y -= step;
+            return btn.GetComponentInChildren<Text>();
         }
     }
 }
