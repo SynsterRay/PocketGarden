@@ -105,20 +105,6 @@ namespace PocketGarden.Grid
             {
                 readyGen.TryProduce();
             }
-            else if (anyGen != null && anyGen.CanSkip)
-            {
-                // Offer to finish the cooldown instantly for gems.
-                var gen = anyGen;
-                UI.GemConfirmPopup.Show("Skip the wait?", Core.GemEconomy.GeneratorSkipCost, () =>
-                {
-                    if (Core.GemSystem.Spend(Core.GemEconomy.GeneratorSkipCost))
-                    {
-                        gen.SkipCooldown();
-                        gen.TryProduce();
-                        SaveSystem.SaveGrid(_grid);
-                    }
-                });
-            }
         }
 
         private void ContinueDrag(Vector2 screenPos)

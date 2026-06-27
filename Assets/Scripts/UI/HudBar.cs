@@ -45,7 +45,8 @@ namespace PocketGarden.UI
                 var s = FindAnyObjectByType<ShopUI>() ?? _canvas.gameObject.AddComponent<ShopUI>();
                 s.Toggle();
             });
-            IconButton("icon_settings", "⚙", new Color(0.6f, 0.6f, 0.6f), 0.875f, 0.99f, () =>
+            IconButton("icon_gem", "⏭", UIFactory.Gem, 0.87f, 0.935f, OnGemSkipClick);
+            IconButton("icon_settings", "⚙", new Color(0.6f, 0.6f, 0.6f), 0.945f, 1f, () =>
             {
                 var m = FindAnyObjectByType<MainMenu>() ?? _canvas.gameObject.AddComponent<MainMenu>();
                 m.Toggle();
@@ -137,5 +138,36 @@ namespace PocketGarden.UI
 
         private void UpdateCoins(int v) { if (_coinText != null) _coinText.text = v.ToString(); }
         private void UpdateGems(int v) { if (_gemText != null) _gemText.text = v.ToString(); }
+
+        private void OnGemSkipClick()
+        {
+            var grid = FindAnyObjectByType<Grid.MergeGrid>();
+            if (grid == null) return;
+
+            var readyGen = grid.Generators.Find(g => g != null && g.IsReady);
+            if (readyGen != null)
+            {
+                readyGen.TryProduce();
+                return;
+            }
+
+            var anyGen = grid.Generators.Find(g => g != null && g.CanSkip);
+            if (anyGen != null)
+            {
+                GemConfirmPopup.Show("Skip generator cooldown?", GemEconomy.GeneratorSkipCost, () =>
+                {
+                    if (GemSystem.Spend(GemEconomy.GeneratorSkipCost))
+                    {
+                        anyGen.SkipCooldown();
+                        anyGen.TryProduce();
+                        SaveSystem.SaveGrid(grid);
+                    }
+                });
+                return;
+            }
+
+            // No generator available
+            GemConfirmPopup.Show("No generator available", 0, null);
+        }
     }
 }

@@ -86,15 +86,10 @@ namespace PocketGarden.Grid
             foreach (var g in _generators)
                 if (g != null && g.name == $"Gen_{itemId}") return;
 
-            (int row, int col) = chain switch
-            {
-                MergeChain.Garden => (0, 4),
-                MergeChain.Wood => (3, 4),
-                MergeChain.Stone => (6, 4),
-                _ => (0, 4)
-            };
+            var emptyCell = FindEmptyCell();
+            if (emptyCell == null) return; // No space for generator
 
-            AddGenerator(row, col, itemId,
+            AddGenerator(emptyCell.Row, emptyCell.Col, itemId,
                 Progression.GeneratorCooldown(chain),
                 Progression.GeneratorUses(chain));
         }
@@ -260,11 +255,13 @@ namespace PocketGarden.Grid
 
         public GridCell FindEmptyCell()
         {
+            var empty = new System.Collections.Generic.List<GridCell>();
             for (int r = 0; r < rows; r++)
                 for (int c = 0; c < cols; c++)
-                    if (_cells[r, c].IsEmpty) return _cells[r, c];
-            OnBoardFull?.Invoke();
-            return null;
+                    if (_cells[r, c].IsEmpty) empty.Add(_cells[r, c]);
+            
+            if (empty.Count == 0) { OnBoardFull?.Invoke(); return null; }
+            return empty[UnityEngine.Random.Range(0, empty.Count)];
         }
 
         public MergeDatabase Database => _db;

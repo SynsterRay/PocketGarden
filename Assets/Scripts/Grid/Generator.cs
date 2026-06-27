@@ -14,6 +14,8 @@ namespace PocketGarden.Grid
         private MergeGrid _grid;
         private GridCell _cell;
         private SpriteRenderer _indicator;
+        private float _moveTimer;
+        private const float MoveInterval = 15f; // przemieszaj generator co 15 sekund
 
         public bool IsReady => _ready;
         public int UsesLeft => _usesLeft;
@@ -63,6 +65,25 @@ namespace PocketGarden.Grid
                 _ready = true;
                 if (_indicator != null) _indicator.enabled = true;
             }
+
+            // Periodically move to a random empty cell
+            _moveTimer += Time.deltaTime;
+            if (_moveTimer >= MoveInterval)
+            {
+                _moveTimer = 0f;
+                MoveToRandomCell();
+            }
+        }
+
+        private void MoveToRandomCell()
+        {
+            var newCell = _grid.FindEmptyCell();
+            if (newCell == null) return;
+
+            _cell.SetHighlight(false); // unhighlight old cell
+            _cell = newCell;
+            transform.position = _cell.transform.position;
+            _cell.SetHighlight(true); // highlight new cell
         }
 
         /// <summary>Tap generator to produce item on nearest empty cell.</summary>
