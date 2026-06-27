@@ -28,38 +28,100 @@ namespace PocketGarden.Quests
         public static event System.Action OnQuestUpdated;
         public static event System.Action<Quest> OnQuestComplete;
 
-        private static readonly Quest[] AllQuests =
+        private static readonly Quest[] AllQuests = BuildQuests();
+
+        private const int TotalQuests = 100;
+
+        private static readonly string[] GardenNames = { "Seed", "Sprout", "Flower", "Bush", "Tree", "Big Tree", "Magic Tree" };
+        private static readonly string[] WoodNames   = { "Twig", "Log", "Plank", "Crate", "Furniture", "Gazebo", "House" };
+        private static readonly string[] StoneNames  = { "Pebble", "Stone", "Brick", "Wall", "Pillar", "Fountain", "Castle" };
+
+        /// <summary>
+        /// Builds a 100-quest ladder procedurally with a gentle ramp:
+        ///   • Quests 1–~10 are tiny (1 low-level item) so the opening flies by and hooks the player.
+        ///   • Wood unlocks at quest 10, Stone at quest 30 (same thresholds as Progression).
+        ///   • Amounts / item levels / rewards scale up smoothly toward the grind.
+        ///   • Early quests and every 10th quest grant gems to fuel the gem sinks.
+        /// </summary>
+        private static Quest[] BuildQuests()
         {
-            // ── Phase 1: HOOK (Garden only) — small asks, fast generous rewards ──
-            new() { id = "q1",  requiredItemId = "garden_3", requiredAmount = 2, coinReward = 50,  description = "Deliver 2 Flowers" },
-            new() { id = "q2",  requiredItemId = "garden_4", requiredAmount = 1, coinReward = 60,  description = "Deliver 1 Bush" },
-            new() { id = "q3",  requiredItemId = "garden_3", requiredAmount = 3, coinReward = 80,  description = "Deliver 3 Flowers" },
-            new() { id = "q4",  requiredItemId = "garden_5", requiredAmount = 1, coinReward = 120, gemReward = 10, description = "Grow 1 Tree" },
-            new() { id = "q5",  requiredItemId = "garden_4", requiredAmount = 2, coinReward = 120, description = "Deliver 2 Bushes" },
-            new() { id = "q6",  requiredItemId = "garden_6", requiredAmount = 1, coinReward = 200, description = "Grow 1 Big Tree", unlocksChain = MergeChain.Wood },
+            int wu = Core.Progression.WoodUnlockQuest;   // 10
+            int su = Core.Progression.StoneUnlockQuest;  // 30
+            var list = new List<Quest>(TotalQuests);
 
-            // ── Phase 2: WOOD (trees now produce Logs) ──
-            new() { id = "q7",  requiredItemId = "wood_2", requiredAmount = 3, coinReward = 150, description = "Deliver 3 Logs" },
-            new() { id = "q8",  requiredItemId = "wood_3", requiredAmount = 2, coinReward = 200, description = "Deliver 2 Planks" },
-            new() { id = "q9",  requiredItemId = "wood_4", requiredAmount = 1, coinReward = 250, gemReward = 15, description = "Build 1 Crate" },
-            new() { id = "q10", requiredItemId = "garden_7", requiredAmount = 1, coinReward = 400, description = "Grow 1 Magic Tree" },
-            new() { id = "q11", requiredItemId = "wood_5", requiredAmount = 2, coinReward = 400, description = "Build 2 Furniture", unlocksChain = MergeChain.Stone },
+            for (int i = 1; i <= TotalQuests; i++)
+            {
+                bool woodOpen = i > wu;
+                bool stoneOpen = i > su;
 
-            // ── Phase 3: STONE + all chains — escalating, regen slows ──
-            new() { id = "q12", requiredItemId = "stone_3", requiredAmount = 3, coinReward = 300, description = "Deliver 3 Bricks" },
-            new() { id = "q13", requiredItemId = "stone_4", requiredAmount = 1, coinReward = 400, gemReward = 20, description = "Build 1 Wall" },
-            new() { id = "q14", requiredItemId = "wood_6", requiredAmount = 1, coinReward = 500, description = "Build 1 Gazebo" },
-            new() { id = "q15", requiredItemId = "stone_5", requiredAmount = 1, coinReward = 600, description = "Raise 1 Pillar" },
-            new() { id = "q16", requiredItemId = "wood_7", requiredAmount = 1, coinReward = 800, description = "Build 1 House" },
+                // Rotate among unlocked chains for variety.
+                var chains = new List<MergeChain> { MergeChain.Garden };
+                if (woodOpen) chains.Add(MergeChain.Wood);
+                if (stoneOpen) chains.Add(MergeChain.Stone);
+                var chain = chains[i % chains.Count];
 
-            // ── Phase 4: GRIND / endgame — heavy asks (energy & packs matter) ──
-            new() { id = "q17", requiredItemId = "stone_6", requiredAmount = 1, coinReward = 800,  description = "Build 1 Fountain" },
-            new() { id = "q18", requiredItemId = "garden_7", requiredAmount = 2, coinReward = 1000, description = "Grow 2 Magic Trees" },
-            new() { id = "q19", requiredItemId = "wood_7", requiredAmount = 2, coinReward = 1200, description = "Build 2 Houses" },
-            new() { id = "q20", requiredItemId = "stone_7", requiredAmount = 1, coinReward = 1500, gemReward = 50, description = "Build 1 Castle" },
-            new() { id = "q21", requiredItemId = "stone_6", requiredAmount = 2, coinReward = 1800, description = "Build 2 Fountains" },
-            new() { id = "q22", requiredItemId = "stone_7", requiredAmount = 2, coinReward = 2500, description = "Build 2 Castles" },
+                float t = (i - 1) / (float)(TotalQuests - 1); // 0..1
+
+                int level;
+                if (i <= 10)
+                {
+                    // Hook: gentle ramp Sprout(2) → Flower(3) → Bush(4) = fast, easy first quests.
+                    level = Mathf.Clamp(2 + (i - 1) / 4, 2, 4); // i1-4:2, i5-8:3, i9-10:4
+                }
+                else
+                {
+                    int maxLevel = Mathf.Clamp(2 + Mathf.RoundToInt(t * 5f), 2, 7);
+                    int minLevel = Mathf.Max(2, maxLevel - 2);
+                    int span = Mathf.Max(1, maxLevel - minLevel + 1);
+                    level = Mathf.Clamp(minLevel + (i % span), 1, 7);
+                }
+
+                int amount = i <= 5 ? 1 : i <= 10 ? 2 : Mathf.Clamp(1 + i / 18, 1, 5);
+
+                int coin = 20 + level * amount * 15 + i * 6;
+
+                int gem = 0;
+                if (i <= 8) gem += 5;                       // early boost
+                if (i % 10 == 0) gem += 20 + (i / 10) * 5;  // milestone every 10
+
+                MergeChain? unlock = i == wu ? MergeChain.Wood
+                                   : i == su ? MergeChain.Stone
+                                   : (MergeChain?)null;
+
+                string name = ItemName(chain, level);
+                string desc = $"Deliver {amount} {name}" + (amount > 1 ? "s" : "");
+
+                list.Add(new Quest
+                {
+                    id = $"q{i}",
+                    requiredItemId = $"{Prefix(chain)}_{level}",
+                    requiredAmount = amount,
+                    coinReward = coin,
+                    gemReward = gem,
+                    description = desc,
+                    unlocksChain = unlock
+                });
+            }
+            return list.ToArray();
+        }
+
+        private static string Prefix(MergeChain c) => c switch
+        {
+            MergeChain.Wood => "wood",
+            MergeChain.Stone => "stone",
+            _ => "garden"
         };
+
+        private static string ItemName(MergeChain c, int level)
+        {
+            int idx = Mathf.Clamp(level - 1, 0, 6);
+            return c switch
+            {
+                MergeChain.Wood => WoodNames[idx],
+                MergeChain.Stone => StoneNames[idx],
+                _ => GardenNames[idx]
+            };
+        }
 
         private void Start()
         {

@@ -115,6 +115,9 @@ Merge items on grid (5×7)
 ## Changelog
 
 ### 2026-06-27
+- **100-quest ladder** (procedurally generated in `QuestManager.BuildQuests`): gentle hook (tiny level-2→4 Garden quests) ramping smoothly to the grind. Wood unlocks at quest 10, Stone at quest 30 (`Progression.WoodUnlockQuest`/`StoneUnlockQuest`). Faster early energy regen (Hook 30s).
+- **Starting gems**: one-time +100 💎 on first run (`GameManager`) so players can immediately use the gem sinks; early quests + every 10th quest also grant gems.
+- **Editor reset tool**: *PocketGarden → Reset Progress* (`Editor/ProgressTools.cs`) with confirmation.
 - **Gem sinks** added (`GemEconomy`, `GemConfirmPopup`): spend 💎 to **refill energy** (tap the HUD energy chip, Shop button, or the energy offer) and to **skip a generator's cooldown** (tap a not-ready generator). Gives gems a real use; short-on-gems routes to the Shop.
 - UI/UX overhaul: new shared `UIFactory` (rounded sprites, one font, consistent builders); consolidated top `HudBar` showing Energy + Coins + **Gems** with Shop/Settings in one evenly-spaced, non-overlapping row.
 - Gem counter now on the HUD (was previously invisible despite quests granting gems).

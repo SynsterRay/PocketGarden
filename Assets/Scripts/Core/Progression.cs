@@ -30,19 +30,20 @@ namespace PocketGarden.Core
             get
             {
                 int q = CompletedQuests;
-                if (q >= 17) return Phase.Grind;
-                if (q >= 11) return Phase.Stone;
-                if (q >= 6) return Phase.Wood;
+                if (q >= 60) return Phase.Grind;
+                if (q >= StoneUnlockQuest) return Phase.Stone;
+                if (q >= WoodUnlockQuest) return Phase.Wood;
                 return Phase.Hook;
             }
         }
 
         // --- Chain unlocking -------------------------------------------------
 
-        // Quest indices at which a chain becomes available (also used as a retroactive fallback
+        // Quest counts at which a chain becomes available (also used as a retroactive fallback
         // so existing saves whose quest index is already past the unlock quest aren't stuck).
-        private const int WoodUnlockQuest = 6;
-        private const int StoneUnlockQuest = 11;
+        // Public so QuestManager builds the ladder against the same thresholds.
+        public const int WoodUnlockQuest = 10;
+        public const int StoneUnlockQuest = 30;
 
         public static bool IsChainUnlocked(MergeChain chain)
         {
@@ -82,10 +83,10 @@ namespace PocketGarden.Core
         /// <summary>Seconds to regenerate 1 energy. Fast early to hook, slower in the grind.</summary>
         public static int EnergyRegenSeconds => CurrentPhase switch
         {
-            Phase.Hook => 45,   // ~80/hr — generous, keeps new players merging
-            Phase.Wood => 90,   // ~40/hr
-            Phase.Stone => 150, // ~24/hr
-            _ => 180            // ~20/hr — the grind, where packs become attractive
+            Phase.Hook => 30,   // ~120/hr — very generous early so the player never stalls
+            Phase.Wood => 60,   // ~60/hr
+            Phase.Stone => 120, // ~30/hr
+            _ => 180            // ~20/hr — the grind, where packs/gems become attractive
         };
 
         // --- Generator pacing ------------------------------------------------
