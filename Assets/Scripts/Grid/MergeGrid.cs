@@ -234,6 +234,42 @@ namespace PocketGarden.Grid
             item.transform.position = newCell.transform.position;
         }
 
+        /// <summary>Fills the entire board with random unlocked items, costing gems.</summary>
+        public void FillBoardWithRandomItems()
+        {
+            // Cost: 10 gems per cell (rows*cols)
+            int cost = rows * cols * 10;
+            if (!GemSystem.Spend(cost)) return;
+
+            var chains = new List<MergeChain>();
+            if (Progression.IsChainUnlocked(MergeChain.Garden)) chains.Add(MergeChain.Garden);
+            if (Progression.IsChainUnlocked(MergeChain.Wood)) chains.Add(MergeChain.Wood);
+            if (Progression.IsChainUnlocked(MergeChain.Stone)) chains.Add(MergeChain.Stone);
+
+            if (chains.Count == 0) return;
+
+            for (int r = 0; r < rows; r++)
+            {
+                for (int c = 0; c < cols; c++)
+                {
+                    if (_cells[r, c].IsEmpty)
+                    {
+                        var chain = chains[Random.Range(0, chains.Count)];
+                        // Random level: 1-3 for garden, 1-4 for wood/stone
+                        int level = chain == MergeChain.Garden ? Random.Range(1, 4) : Random.Range(1, 5);
+                        SpawnItem($"{Prefix(chain)}_{level}", r, c);
+                    }
+                }
+            }
+        }
+
+        private static string Prefix(MergeChain c) => c switch
+        {
+            MergeChain.Wood => "wood",
+            MergeChain.Stone => "stone",
+            _ => "garden"
+        };
+
         public GridCell GetCellAt(Vector3 worldPos)
         {
             float minDist = float.MaxValue;

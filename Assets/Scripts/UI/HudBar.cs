@@ -40,7 +40,8 @@ namespace PocketGarden.UI
                     () => GemEconomy.TryRefillEnergy());
             });
 
-            IconButton("icon_shop", "🛒", UIFactory.Leaf, 0.745f, 0.86f, () =>
+            IconButton("icon_fill", "📦", new Color(0.2f, 0.6f, 0.2f), 0.68f, 0.735f, OnFillBoardClick);
+            IconButton("icon_shop", "🛒", UIFactory.Leaf, 0.75f, 0.86f, () =>
             {
                 var s = FindAnyObjectByType<ShopUI>() ?? _canvas.gameObject.AddComponent<ShopUI>();
                 s.Toggle();
@@ -168,6 +169,22 @@ namespace PocketGarden.UI
 
             // No generator available
             GemConfirmPopup.Show("No generator available", 0, null);
+        }
+
+        private void OnFillBoardClick()
+        {
+            var grid = FindAnyObjectByType<Grid.MergeGrid>();
+            if (grid == null) return;
+
+            int cost = grid.Rows * grid.Cols * 10;
+            GemConfirmPopup.Show($"Fill board with random items? ({cost} 💎)", cost, () =>
+            {
+                if (GemSystem.Spend(cost))
+                {
+                    grid.FillBoardWithRandomItems();
+                    SaveSystem.SaveGrid(grid);
+                }
+            });
         }
     }
 }
