@@ -56,13 +56,18 @@ namespace PocketGarden.Grid
 
             GridCell cellWithItem = null;
             Generator readyGen = null;
+            Generator anyGen = null;
 
             foreach (var h in hits)
             {
                 var cell = h.GetComponent<GridCell>();
                 if (cell != null && !cell.IsEmpty) cellWithItem = cell;
                 var gen = h.GetComponent<Generator>();
-                if (gen != null && gen.IsReady) readyGen = gen;
+                if (gen != null)
+                {
+                    anyGen = gen;
+                    if (gen.IsReady) readyGen = gen;
+                }
             }
 
             // Item takes priority
@@ -96,7 +101,24 @@ namespace PocketGarden.Grid
             }
 
             // No item — tap generator
-            if (readyGen != null) readyGen.TryProduce();
+            if (readyGen != null)
+            {
+                readyGen.TryProduce();
+            }
+            else if (anyGen != null && anyGen.CanSkip)
+            {
+                // Offer to finish the cooldown instantly for gems.
+                var gen = anyGen;
+                UI.GemConfirmPopup.Show("Skip the wait?", Core.GemEconomy.GeneratorSkipCost, () =>
+                {
+                    if (Core.GemSystem.Spend(Core.GemEconomy.GeneratorSkipCost))
+                    {
+                        gen.SkipCooldown();
+                        gen.TryProduce();
+                        SaveSystem.SaveGrid(_grid);
+                    }
+                });
+            }
         }
 
         private void ContinueDrag(Vector2 screenPos)

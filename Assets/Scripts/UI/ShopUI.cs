@@ -37,12 +37,22 @@ namespace PocketGarden.UI
                 new Vector2(0.94f, 0.965f), UIFactory.Danger, 28);
             close.onClick.AddListener(Hide);
 
-            // Scroll view (between header and the ad/close footer)
-            BuildScrollList(_panel.transform, new Vector2(0.04f, 0.17f), new Vector2(0.96f, 0.89f));
+            // Scroll view (between header and the footer buttons)
+            BuildScrollList(_panel.transform, new Vector2(0.04f, 0.225f), new Vector2(0.96f, 0.89f));
+
+            // Refill energy with gems (footer, above the ad)
+            var refill = UIFactory.Button(_panel.transform, $"⚡ Refill Energy  =  💎 {GemEconomy.EnergyRefillCost}",
+                new Vector2(0.12f, 0.145f), new Vector2(0.88f, 0.215f), UIFactory.Gem, 22);
+            refill.onClick.AddListener(() =>
+            {
+                if (EnergySystem.IsFull) return;
+                GemConfirmPopup.Show("Refill energy to full?", GemEconomy.EnergyRefillCost,
+                    () => GemEconomy.TryRefillEnergy());
+            });
 
             // Rewarded ad (footer, fixed)
             var ad = UIFactory.Button(_panel.transform, "▶  Watch Ad  =  +10 Energy",
-                new Vector2(0.12f, 0.05f), new Vector2(0.88f, 0.13f), UIFactory.Gold, 24, UIFactory.Ink);
+                new Vector2(0.12f, 0.05f), new Vector2(0.88f, 0.12f), UIFactory.Gold, 22, UIFactory.Ink);
             ad.onClick.AddListener(OnWatchAd);
 
             _visible = true;

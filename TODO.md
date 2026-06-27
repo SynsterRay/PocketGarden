@@ -24,8 +24,9 @@ Outstanding work, grouped by priority. Checked items are done; unchecked remain.
 - [ ] Verify banner safe-area / it doesn't overlap the quest drop zone.
 
 ## 🟡 Economy gaps
-- [ ] **Gem sinks**: gems are earned (quests, packs) but nothing spends them yet.
-      Add uses — skip generator cooldown, buy a new/extra generator, premium décor, refill energy.
+- [x] **Gem sinks (first two)**: energy refill (HUD energy chip, Shop, energy offer) and
+      generator cooldown skip (tap a not-ready generator) — `GemEconomy`, `GemConfirmPopup`.
+- [ ] More gem sinks: buy/refresh a generator, skip a chain-unlock requirement, premium décor.
 - [ ] **Generator replacement**: generators have limited uses; add buy-new-generator
       (coins/gems) when exhausted (GDD §3.3).
 - [ ] Balance pass on numbers (regen seconds, generator cooldowns, quest requirements,

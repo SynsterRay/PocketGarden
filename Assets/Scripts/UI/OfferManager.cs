@@ -51,7 +51,8 @@ namespace PocketGarden.UI
                 string id = Progression.CurrentPhase == Progression.Phase.Grind ? "growth_bundle" : "energy_small";
                 ShowOffer(ShopCatalog.Get(id),
                     "Out of energy?",
-                    "Top up and keep your garden growing!");
+                    "Top up and keep your garden growing!",
+                    allowGemRefill: true);
             }
         }
 
@@ -86,7 +87,7 @@ namespace PocketGarden.UI
 
         // --- Panel -----------------------------------------------------------
 
-        private void ShowOffer(ShopItem item, string title, string subtitle)
+        private void ShowOffer(ShopItem item, string title, string subtitle, bool allowGemRefill = false)
         {
             if (item == null || _canvas == null) return;
             _lastOfferTime = Time.realtimeSinceStartup;
@@ -131,10 +132,27 @@ namespace PocketGarden.UI
                 Close();
             });
 
-            // No thanks
-            var no = MakeButton(card.transform, "No thanks",
-                new Vector2(0.30f, 0.04f), new Vector2(0.70f, 0.14f), new Color(0.75f, 0.75f, 0.72f));
-            no.onClick.AddListener(Close);
+            // Bottom row: optional gem-refill alternative + No thanks.
+            if (allowGemRefill && !EnergySystem.IsFull)
+            {
+                var refill = MakeButton(card.transform, $"Refill 💎{GemEconomy.EnergyRefillCost}",
+                    new Vector2(0.10f, 0.04f), new Vector2(0.49f, 0.14f), UIFactory.Gem);
+                refill.onClick.AddListener(() =>
+                {
+                    if (GemEconomy.TryRefillEnergy()) Close();
+                    else { Close(); (FindAnyObjectByType<ShopUI>() ?? gameObject.AddComponent<ShopUI>()).Show(); }
+                });
+
+                var no2 = MakeButton(card.transform, "No thanks",
+                    new Vector2(0.51f, 0.04f), new Vector2(0.90f, 0.14f), new Color(0.75f, 0.75f, 0.72f));
+                no2.onClick.AddListener(Close);
+            }
+            else
+            {
+                var no = MakeButton(card.transform, "No thanks",
+                    new Vector2(0.30f, 0.04f), new Vector2(0.70f, 0.14f), new Color(0.75f, 0.75f, 0.72f));
+                no.onClick.AddListener(Close);
+            }
         }
 
         private void Close()

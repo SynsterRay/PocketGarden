@@ -18,6 +18,18 @@ namespace PocketGarden.Grid
         public bool IsReady => _ready;
         public int UsesLeft => _usesLeft;
 
+        /// <summary>True if the generator is on cooldown (not ready) but still has uses — eligible for a gem skip.</summary>
+        public bool CanSkip => !_ready && _usesLeft > 0;
+
+        /// <summary>Instantly finish the current cooldown (used by the gem skip).</summary>
+        public void SkipCooldown()
+        {
+            if (_usesLeft <= 0) return;
+            _timer = 0f;
+            _ready = true;
+            if (_indicator != null) _indicator.enabled = true;
+        }
+
         public void Init(GridCell cell, MergeGrid grid, string itemId, float cd, int uses)
         {
             _cell = cell;

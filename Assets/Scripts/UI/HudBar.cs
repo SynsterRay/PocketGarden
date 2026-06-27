@@ -29,6 +29,17 @@ namespace PocketGarden.UI
             _coinText   = Chip("CoinChip",   "icon_coin",   "🪙", UIFactory.Gold,       0.255f, 0.485f);
             _gemText    = Chip("GemChip",    "icon_gem",    "💎", UIFactory.Gem,        0.495f, 0.725f);
 
+            // Tap the energy chip to refill with gems.
+            var energyChip = _energyText.transform.parent.gameObject;
+            var refillBtn = energyChip.AddComponent<Button>();
+            refillBtn.transition = Selectable.Transition.None;
+            refillBtn.onClick.AddListener(() =>
+            {
+                if (EnergySystem.IsFull) return;
+                GemConfirmPopup.Show("Refill energy to full?", GemEconomy.EnergyRefillCost,
+                    () => GemEconomy.TryRefillEnergy());
+            });
+
             IconButton("icon_shop", "🛒", UIFactory.Leaf, 0.745f, 0.86f, () =>
             {
                 var s = FindAnyObjectByType<ShopUI>() ?? _canvas.gameObject.AddComponent<ShopUI>();

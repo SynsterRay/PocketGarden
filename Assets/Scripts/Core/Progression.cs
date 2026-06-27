@@ -39,13 +39,18 @@ namespace PocketGarden.Core
 
         // --- Chain unlocking -------------------------------------------------
 
+        // Quest indices at which a chain becomes available (also used as a retroactive fallback
+        // so existing saves whose quest index is already past the unlock quest aren't stuck).
+        private const int WoodUnlockQuest = 6;
+        private const int StoneUnlockQuest = 11;
+
         public static bool IsChainUnlocked(MergeChain chain)
         {
             return chain switch
             {
                 MergeChain.Garden => true, // always available
-                MergeChain.Wood => PlayerPrefs.GetInt(UnlockWoodKey, 0) == 1,
-                MergeChain.Stone => PlayerPrefs.GetInt(UnlockStoneKey, 0) == 1,
+                MergeChain.Wood => PlayerPrefs.GetInt(UnlockWoodKey, 0) == 1 || CompletedQuests >= WoodUnlockQuest,
+                MergeChain.Stone => PlayerPrefs.GetInt(UnlockStoneKey, 0) == 1 || CompletedQuests >= StoneUnlockQuest,
                 _ => false
             };
         }

@@ -115,6 +115,7 @@ Merge items on grid (5×7)
 ## Changelog
 
 ### 2026-06-27
+- **Gem sinks** added (`GemEconomy`, `GemConfirmPopup`): spend 💎 to **refill energy** (tap the HUD energy chip, Shop button, or the energy offer) and to **skip a generator's cooldown** (tap a not-ready generator). Gives gems a real use; short-on-gems routes to the Shop.
 - UI/UX overhaul: new shared `UIFactory` (rounded sprites, one font, consistent builders); consolidated top `HudBar` showing Energy + Coins + **Gems** with Shop/Settings in one evenly-spaced, non-overlapping row.
 - Gem counter now on the HUD (was previously invisible despite quests granting gems).
 - `QuestUI` slimmed to a quest card + delivery drop zone (currencies moved to HudBar); quests show coin/gem rewards.

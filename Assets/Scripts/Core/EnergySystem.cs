@@ -40,6 +40,11 @@ namespace PocketGarden.Core
             return true;
         }
 
+        /// <summary>Refills energy to the maximum (used by gem refill).</summary>
+        public static void Refill() => Energy = MaxEnergy;
+
+        public static bool IsFull => Energy >= MaxEnergy;
+
         public static void Add(int amount)
         {
             Energy += amount;
