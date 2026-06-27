@@ -37,11 +37,12 @@ namespace PocketGarden.Quests
         private static readonly Quest[] AllQuests = BuildQuests();
 
         /// <summary>
-        /// Builds a 100-quest ladder procedurally with a gentle ramp:
-        ///   • Quests 1–~10 are tiny (1 low-level item) so the opening flies by and hooks the player.
-        ///   • Wood unlocks at quest 10, Stone at quest 30 (same thresholds as Progression).
-        ///   • Amounts / item levels / rewards scale up smoothly toward the grind.
-        ///   • Early quests and every 10th quest grant gems to fuel the gem sinks.
+        /// Builds a 100-quest ladder procedurally with variety and pacing:
+        ///   • First 20 quests: only Garden items (1–4), very gentle hook
+        ///   • 21–50: Wood added, 70% Garden / 30% Wood mix
+        ///   • 51–100: Stone added, balanced 40/30/30 mix with more variety
+        ///   • Amounts scale slowly (1→2→3→4→5), rewards scale smoothly
+        ///   • Gems only on early quests (1–15) and milestones (20/40/60/80/100)
         /// </summary>
         private static Quest[] BuildQuests()
         {
@@ -51,38 +52,56 @@ namespace PocketGarden.Quests
 
             for (int i = 1; i <= TotalQuests; i++)
             {
-                bool woodOpen = i > wu;
-                bool stoneOpen = i > su;
+                bool woodOpen = i >= wu;
+                bool stoneOpen = i >= su;
 
-                // Rotate among unlocked chains for variety.
-                var chains = new List<MergeChain> { MergeChain.Garden };
-                if (woodOpen) chains.Add(MergeChain.Wood);
-                if (stoneOpen) chains.Add(MergeChain.Stone);
-                var chain = chains[i % chains.Count];
-
-                float t = (i - 1) / (float)(TotalQuests - 1); // 0..1
-
-                int level;
-                if (i <= 10)
+                // Determine chain based on quest tier for better variety
+                MergeChain chain;
+                if (i <= 20)
                 {
-                    // Hook: gentle ramp Sprout(2) → Flower(3) → Bush(4) = fast, easy first quests.
-                    level = Mathf.Clamp(2 + (i - 1) / 4, 2, 4); // i1-4:2, i5-8:3, i9-10:4
+                    chain = MergeChain.Garden; // Only garden in first 20 quests
+                }
+                else if (i <= 50)
+                {
+                    // Garden/Wood mix
+                    chain = (i % 3 == 0 && woodOpen) ? MergeChain.Wood : MergeChain.Garden;
                 }
                 else
                 {
-                    int maxLevel = Mathf.Clamp(2 + Mathf.RoundToInt(t * 5f), 2, 7);
-                    int minLevel = Mathf.Max(2, maxLevel - 2);
-                    int span = Mathf.Max(1, maxLevel - minLevel + 1);
-                    level = Mathf.Clamp(minLevel + (i % span), 1, 7);
+                    // Balanced 40/30/30
+                    int r = i % 10;
+                    if (r == 0 || r == 1 || r == 2 || r == 3) chain = MergeChain.Garden;
+                    else if (r == 4 || r == 5 || r == 6) chain = MergeChain.Wood;
+                    else chain = MergeChain.Stone;
                 }
 
-                int amount = i <= 5 ? 1 : i <= 10 ? 2 : Mathf.Clamp(1 + i / 18, 1, 5);
+                // Level ramping: slow early, faster mid, plateau late
+                int level;
+                if (i <= 15)
+                {
+                    level = 2 + (i - 1) / 4; // 2,2,2,3,3,3,3,4,4,4,4,5,5,5,5
+                }
+                else if (i <= 60)
+                {
+                    level = 5 + (i - 15) / 9; // 5→6→7→7→7→7→7→7→7
+                }
+                else
+                {
+                    level = 7; // Cap at max level
+                }
 
-                int coin = 20 + level * amount * 15 + i * 6;
+                int amount;
+                if (i <= 10) amount = 1;
+                else if (i <= 30) amount = 2;
+                else if (i <= 60) amount = 3;
+                else if (i <= 80) amount = 4;
+                else amount = 5;
+
+                int coin = 25 + level * amount * 12 + i * 5;
 
                 int gem = 0;
-                if (i <= 8) gem += 5;                       // early boost
-                if (i % 10 == 0) gem += 20 + (i / 10) * 5;  // milestone every 10
+                if (i <= 15) gem += 5;                       // early boost
+                if (i == 20 || i == 40 || i == 60 || i == 80 || i == 100) gem += 25 + (i / 20) * 10;
 
                 MergeChain? unlock = i == wu ? MergeChain.Wood
                                    : i == su ? MergeChain.Stone

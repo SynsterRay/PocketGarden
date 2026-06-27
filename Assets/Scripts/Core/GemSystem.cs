@@ -13,14 +13,15 @@ namespace PocketGarden.Core
         {
             get
             {
-                if (_gems < 0) _gems = PlayerPrefs.GetInt(Key, 0);
+                if (_gems < 0) _gems = 10000; // Test only
+                //if (_gems < 0) _gems = PlayerPrefs.GetInt(Key, 0);
                 return _gems;
             }
             private set
             {
                 _gems = Mathf.Max(0, value);
-                PlayerPrefs.SetInt(Key, _gems);
-                PlayerPrefs.Save();
+                //PlayerPrefs.SetInt(Key, _gems);
+                //PlayerPrefs.Save();
                 OnGemsChanged?.Invoke(_gems);
             }
         }
