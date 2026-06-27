@@ -4,7 +4,7 @@
 
 A cozy merge puzzle mobile game — Unity 6 with URP 2D, targeting Android/iOS. Merge items, complete quests, and decorate your garden.
 
-## Project Status (2026-06-24)
+## Project Status (2026-06-27)
 
 ### Implemented
 
@@ -17,19 +17,19 @@ A cozy merge puzzle mobile game — Unity 6 with URP 2D, targeting Android/iOS. 
 | Energy System | ✅ | 30 max, +1/3min, offline regen |
 | Coin System | ✅ | Currency earned from quests |
 | Gem System | ✅ | Premium currency (IAP) |
-| Quest System | ✅ | 8 quests, deliver by dragging to drop zone |
+| Quest System | ✅ | 50 quests with creative descriptions, unlock chains |
 | Quest Drop Zone | ✅ | Green bar at bottom — drag items to deliver |
 | Generators | ✅ | 3 generators (Garden/Wood/Stone) with cooldown timers |
 | Generator Tap | ✅ | Tap yellow indicator to produce items |
 | Save/Load | ✅ | Board state persists (PlayerPrefs + JSON, auto-save) |
 | Daily Bonus | ✅ | Streak-based energy + coins popup |
 | Shop UI | ✅ | IAP placeholders, rewarded ad button, buy buttons |
-| Shop Catalog | ✅ | 7 IAP products + 3 Ad Unit ID placeholders |
+| Shop Catalog | ✅ | 9 IAP products + 3 Ad Unit ID placeholders |
 | Settings Menu | ✅ | Music/SFX toggle, language, reset, rate us, credits |
 | Tutorial | ✅ | 4-page overlay on every start |
 | Energy UI | ✅ | Top-left display with tick regen |
 | Quest UI | ✅ | Bottom bar with active quests + drop zone |
-| Coin UI | ✅ | Top-right display |
+| Coin/Gem UI | ✅ | Top-right displays (Coins + Gems) |
 | Item Labels | ✅ | Item names displayed on merge grid items |
 | Editor Setup | ✅ | PocketGarden → Setup Scene (with EventSystem) |
 
@@ -134,8 +134,8 @@ Merge items on grid (5×7)
 - Producer items (Option A): mature trees generate Logs — Tree (Lv5) 60s, Big Tree (Lv6) 45s, Magic Tree (Lv7) 30s; tap the ready tree to produce. Only active once the Wood chain is unlocked.
 - New `Progression` module — central "fast hook → slowdown → paywall" curve with 4 phases (Hook/Wood/Stone/Grind) driven by completed-quest count.
 - Phase-based energy regen: 45s (Hook) → 90s (Wood) → 150s (Stone) → 180s (Grind). Early game is generous; late game is the natural paywall.
-- Chain gating: Garden unlocked at start; **Wood unlocks at quest 6**, **Stone unlocks at quest 11**. Generators spawn only for unlocked chains (incl. runtime unlock).
-- Quest ladder expanded 8 → **22 missions** across phases, with coin + gem rewards and chain-unlock rewards. Garden-only, front-loaded starter board for an instant-progress hook.
+- Chain gating: Garden unlocked at start; **Wood unlocks at quest 10**, **Stone unlocks at quest 30**. Generators spawn only for unlocked chains (incl. runtime unlock).
+- Quest ladder expanded 8 → **50 missions** across phases, with coin + gem rewards and chain-unlock rewards. Garden-only, front-loaded starter board for an instant-progress hook.
 - `OfferManager`: contextual single-pack offers at stall points — out of energy (Energy refill / Gardener's Bundle in grind), entering Stone (one-time Starter), entering Grind (Gardener's Bundle). Honest framing: clear "No thanks", one-time Starter shown once, 150s cooldown.
 - Shop pricing aligned to market anchors: gems $0.99 / $4.99 / $9.99 (BEST VALUE) / $19.99 / $49.99 with scaling bonus %, Energy x60 $0.99, Energy x250+50💎 $4.99, one-time Starter $2.99 (-60%), Gardener's Bundle $6.99, VIP $7.99/mo. Shared `ShopCatalog.GrantPurchase`/`Get` (IAP fulfilment still TODO).
 
