@@ -10,6 +10,7 @@ namespace PocketGarden.Grid
 
         private SpriteRenderer _renderer;
         private TextMesh _label;
+        private bool _hasSprite;
 
         // Producer state (Option A)
         private MergeGrid _grid;
@@ -30,19 +31,12 @@ namespace PocketGarden.Grid
             if (_renderer == null) _renderer = gameObject.AddComponent<SpriteRenderer>();
             _renderer.sortingOrder = 10;
 
-            if (data.icon != null)
-            {
-                _renderer.sprite = data.icon;
-                _renderer.color = Color.white;
-            }
-            else
-            {
-                // Prototype: colored square
-                _renderer.sprite = CreateSquareSprite();
-                _renderer.color = data.fallbackColor;
-            }
+            // Load real art from Resources/Items (imported via "PocketGarden → Import Item Sprites").
+            // PPU is normalized per file, so every sprite is the same world size at localScale = 1 —
+            // that keeps all rows consistent and lets the merge/drag punch animations work untouched.
+            ApplyVisual(data);
 
-            // Level label
+            // Level label (only shown when there is no sprite — fallback prototype mode).
             if (_label == null)
             {
                 var labelObj = new GameObject("Label");
@@ -59,7 +53,7 @@ namespace PocketGarden.Grid
                 var mr = labelObj.GetComponent<MeshRenderer>();
                 mr.sortingOrder = 50;
             }
-            _label.text = data.displayName;
+            UpdateLabel();
 
             if (_grid == null) _grid = GetComponentInParent<MergeGrid>();
             RefreshProducer();
@@ -68,22 +62,59 @@ namespace PocketGarden.Grid
         public void UpdateVisual(MergeItemData newData)
         {
             Data = newData;
-            if (newData.icon != null)
-            {
-                _renderer.sprite = newData.icon;
-                _renderer.color = Color.white;
-            }
-            else
-            {
-                _renderer.color = newData.fallbackColor;
-            }
-            _label.text = newData.displayName;
+            ApplyVisual(newData);
+            UpdateLabel();
 
             // Re-evaluate producer state (e.g. just merged into a Tree)
             RefreshProducer();
 
-            // Punch scale feedback
+            // Punch scale feedback (base scale is 1 because PPU is normalized per sprite)
             transform.localScale = Vector3.one * 1.3f;
+        }
+
+        /// <summary>Loads the item's sprite from Resources/Items, falling back to a tinted square.</summary>
+        private void ApplyVisual(MergeItemData data)
+        {
+            var sprite = LoadItemSprite(data.id);
+            if (sprite != null)
+            {
+                _renderer.sprite = sprite;
+                _renderer.color = Color.white;
+                _hasSprite = true;
+            }
+            else
+            {
+                _renderer.sprite = CreateSquareSprite();
+                _renderer.color = data.fallbackColor;
+                _hasSprite = false;
+            }
+        }
+
+        /// <summary>Shows the name label only as a fallback when there is no sprite art.</summary>
+        private void UpdateLabel()
+        {
+            if (_label == null) return;
+            _label.text = _hasSprite ? "" : Data.displayName;
+            _label.gameObject.SetActive(!_hasSprite);
+        }
+
+        // Maps a merge-item id to its PNG filename in Resources/Items.
+        private static readonly System.Collections.Generic.Dictionary<string, string> FileMap = new()
+        {
+            { "garden_1", "seed" },
+            { "garden_2", "sprout" },
+            { "garden_3", "flower" },
+            { "garden_4", "bush" },
+            { "garden_5", "three" },
+            { "garden_6", "big_three" },
+            { "garden_7", "magical_three" },
+        };
+
+        private static Sprite LoadItemSprite(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            if (!FileMap.TryGetValue(id, out var file)) return null;
+            return Resources.Load<Sprite>($"Items/{file}");
         }
 
         private void Update()
