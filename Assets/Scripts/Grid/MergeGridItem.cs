@@ -57,84 +57,119 @@ namespace PocketGarden.Grid
 
             if (_grid == null) _grid = GetComponentInParent<MergeGrid>();
             RefreshProducer();
+
+            // If this is already a Magic Tree (e.g. loaded from save), run its idle loop.
+            MaybeStartIdle(data);
         }
 
         public void UpdateVisual(MergeItemData newData)
         {
             Data = newData;
+            RefreshProducer();
 
-            // Seed → Sprout merge plays the growth frame animation instead of an instant swap.
-            if (newData.id == "garden_2")
+            // Garden merges (sprout → … → magic tree) play a frame-by-frame growth animation
+            // instead of an instant swap. The folder is chosen by the merge RESULT id.
+            if (TransitionFolder.TryGetValue(newData.id, out var folder))
             {
-                RefreshProducer();
-                StartGrowthAnimation(newData);
-                return;
+                var frames = LoadFrames(folder);
+                if (frames != null) { PlayTransition(frames, newData); return; }
             }
 
             ApplyVisual(newData);
             UpdateLabel();
-
-            // Re-evaluate producer state (e.g. just merged into a Tree)
-            RefreshProducer();
+            MaybeStartIdle(newData);
 
             // Punch scale feedback (base scale is 1 because PPU is normalized per sprite)
             transform.localScale = Vector3.one * 1.3f;
         }
 
-        // --- Seed → Sprout growth animation ---------------------------------
+        // --- Garden growth animations ---------------------------------------
 
-        private const int GrowthFrameCount = 7;
-        private const float GrowthFrameTime = 0.07f; // seconds per frame (~0.49s total)
-        private static Sprite[] _growthFrames;
-        private Coroutine _growthRoutine;
+        private const float FrameTime = 0.06f; // seconds per transition frame
+        private Coroutine _animRoutine;
+        private static readonly System.Collections.Generic.Dictionary<string, Sprite[]> _frameCache = new();
 
-        private static Sprite[] LoadGrowthFrames()
+        // Merge RESULT id → frames folder under Resources/Items (top row first, left→right).
+        private static readonly System.Collections.Generic.Dictionary<string, string> TransitionFolder = new()
         {
-            if (_growthFrames != null) return _growthFrames;
-            var frames = new Sprite[GrowthFrameCount];
-            bool ok = true;
-            for (int i = 0; i < GrowthFrameCount; i++)
+            { "garden_2", "seed_sprout" },
+            { "garden_3", "sprout_flower" },
+            { "garden_4", "flower_bush" },
+            { "garden_5", "bush_three" },
+            { "garden_6", "three_big_three" },
+            { "garden_7", "three_magical_three" },
+        };
+
+        // Looping idle animation played once an item reaches its final form (Magic Tree).
+        private const string MagicIdleFolder = "magical_three_animation";
+
+        /// <summary>Loads frame_0..N from a Resources/Items subfolder. Cached; null if none found.</summary>
+        private static Sprite[] LoadFrames(string folder)
+        {
+            if (_frameCache.TryGetValue(folder, out var cached)) return cached;
+            var list = new System.Collections.Generic.List<Sprite>();
+            for (int i = 0; ; i++)
             {
-                frames[i] = Resources.Load<Sprite>($"Items/seed_sprout/frame_{i}");
-                if (frames[i] == null) ok = false;
+                var s = Resources.Load<Sprite>($"Items/{folder}/frame_{i}");
+                if (s == null) break;
+                list.Add(s);
             }
-            _growthFrames = ok ? frames : null;
-            return _growthFrames;
+            var arr = list.Count > 0 ? list.ToArray() : null;
+            _frameCache[folder] = arr;
+            return arr;
         }
 
-        private void StartGrowthAnimation(MergeItemData data)
+        private void PlayTransition(Sprite[] frames, MergeItemData data)
         {
-            var frames = LoadGrowthFrames();
-            if (frames == null)
-            {
-                // Frames not imported yet — fall back to the normal sprite swap.
-                ApplyVisual(data);
-                UpdateLabel();
-                transform.localScale = Vector3.one * 1.3f;
-                return;
-            }
-
             if (_label != null) { _label.text = ""; _label.gameObject.SetActive(false); }
             _hasSprite = true;
             _renderer.color = Color.white;
 
-            if (_growthRoutine != null) StopCoroutine(_growthRoutine);
-            _growthRoutine = StartCoroutine(GrowthAnimation(frames, data));
+            if (_animRoutine != null) StopCoroutine(_animRoutine);
+            _animRoutine = StartCoroutine(TransitionRoutine(frames, data));
         }
 
-        private System.Collections.IEnumerator GrowthAnimation(Sprite[] frames, MergeItemData data)
+        private System.Collections.IEnumerator TransitionRoutine(Sprite[] frames, MergeItemData data)
         {
             transform.localScale = Vector3.one; // hold steady while frames play
             for (int i = 0; i < frames.Length; i++)
             {
                 _renderer.sprite = frames[i];
-                yield return new WaitForSeconds(GrowthFrameTime);
+                yield return new WaitForSeconds(FrameTime);
             }
-            // Settle on the canonical sprout sprite so it matches other garden_2 items, with a punch.
+            // Settle on the canonical sprite so it matches other items of this level, with a punch.
             ApplyVisual(data);
             UpdateLabel();
             transform.localScale = Vector3.one * 1.2f;
-            _growthRoutine = null;
+            _animRoutine = null;
+
+            // Magic Tree keeps a gentle looping idle animation afterwards.
+            MaybeStartIdle(data);
+        }
+
+        /// <summary>Starts the looping Magic Tree idle animation for final-form items.</summary>
+        private void MaybeStartIdle(MergeItemData data)
+        {
+            if (data == null || data.id != "garden_7") return;
+            var frames = LoadFrames(MagicIdleFolder);
+            if (frames == null) return;
+
+            if (_animRoutine != null) StopCoroutine(_animRoutine);
+            _hasSprite = true;
+            _renderer.color = Color.white;
+            if (_label != null) { _label.text = ""; _label.gameObject.SetActive(false); }
+            _animRoutine = StartCoroutine(IdleLoop(frames));
+        }
+
+        private System.Collections.IEnumerator IdleLoop(Sprite[] frames)
+        {
+            int i = 0;
+            while (true)
+            {
+                _renderer.sprite = frames[i];
+                i = (i + 1) % frames.Length;
+                yield return new WaitForSeconds(FrameTime * 2f); // slower, calmer idle
+            }
         }
 
         /// <summary>Loads the item's sprite from Resources/Items, falling back to a tinted square.</summary>
