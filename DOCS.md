@@ -4,7 +4,7 @@
 
 A cozy merge puzzle mobile game — Unity 6 with URP 2D, targeting Android/iOS. Merge items, complete quests, and decorate your garden.
 
-## Project Status (2026-06-27)
+## Project Status (2026-06-28)
 
 ### Implemented
 
@@ -30,8 +30,10 @@ A cozy merge puzzle mobile game — Unity 6 with URP 2D, targeting Android/iOS. 
 | Energy UI | ✅ | Top-left display with tick regen |
 | Quest UI | ✅ | Bottom bar with active quests + drop zone |
 | Coin/Gem UI | ✅ | Top-right displays (Coins + Gems) |
-| Item Labels | ✅ | Item names displayed on merge grid items |
+| Item Sprites | ✅ | Garden chain real art (seed→magic tree), label fallback |
+| Growth Animations | ✅ | Frame-by-frame transition on every Garden merge + Magic Tree idle loop |
 | Editor Setup | ✅ | PocketGarden → Setup Scene (with EventSystem) |
+| Sprite Importer | ✅ | PocketGarden → Import Item Sprites (Single mode, PPU normalized) |
 
 ### Not Yet Implemented
 
@@ -41,7 +43,7 @@ A cozy merge puzzle mobile game — Unity 6 with URP 2D, targeting Android/iOS. 
 - [ ] Push Notifications
 - [ ] Sound Effects / Music
 - [ ] Localization (multi-language)
-- [ ] Sprite assets (using colored squares as prototype)
+- [ ] Wood / Stone chain art (Garden art done; Wood/Stone still use colored squares)
 - [ ] Seasonal events
 - [ ] VIP Pass
 - [ ] Analytics (Firebase)
@@ -108,11 +110,20 @@ Merge items on grid (5×7)
 
 1. Open project in Unity 6
 2. Platform: Android (File → Build Profiles)
-3. Open Assets/Scenes/SampleScene
-4. **PocketGarden → Setup Scene**
-5. Play
+3. Open `Assets/Scenes/MainScene`
+4. **PocketGarden → Import Item Sprites** (loads Garden art + growth-animation frames)
+5. **PocketGarden → Setup Scene** (only if components are missing)
+6. Play
 
 ## Changelog
+
+### 2026-06-28
+- **Real item art (Garden chain)**: PNGs (seed → sprout → flower → bush → tree → big tree → magic tree) load from `Resources/Items/{file}` via `MergeGridItem` (id→filename map). Colored-square + name-label remain as fallback when art is missing (Wood/Stone still use squares).
+- **`ItemSpriteImporter`** editor tool (*PocketGarden → Import Item Sprites*): copies art from the external asset folder into `Resources/Items` and imports every PNG (incl. animation subfolders) as a **Single** sprite with **per-file PPU = maxPixelDimension / 1.0 world unit**. This fixes two earlier bugs: Multiple-mode sprites returned NULL on `Resources.Load<Sprite>`, and a fixed PPU made higher-res art render oversized (the "first row too big" problem). Normalized PPU keeps every item the same world size at `localScale = 1`, so the merge/drag punch animations never distort it.
+- **Frame-by-frame growth animations**: every Garden merge plays a short growth animation (folder chosen by the merge RESULT id) instead of an instant swap, then settles on the canonical sprite. Folders under `Resources/Items/`: `seed_sprout` (1→2), `sprout_flower` (2→3), `flower_bush` (3→4), `bush_three` (4→5), `three_big_three` (5→6), `three_magical_three` (6→7).
+- **Magic Tree idle loop**: once an item reaches `garden_7` (final form) it plays a continuous looping idle animation (`magical_three_animation`), also started for Magic Trees loaded from save.
+- **Sprite-sheet frame extraction** (Python/PIL, offline): auto-detects frames in multi-row sheets (transparent-gap segmentation; top row first, left→right) and re-exports each as a uniform-canvas PNG. Frames are **base-center anchored** (centroid of the bottom trunk/base strip) and bottom-aligned so the trunk stays put and only the foliage sways — fixes the Magic Tree "swaying side to side" jitter.
+- **Scene cleanup**: removed unused `SampleScene` (had no HudBar → no HUD/shop/gems). `MainScene` is now the single build scene (full setup: GameManager + Canvas with HudBar/QuestUI/Tutorial/DailyBonus/OfferManager + EventSystem).
 
 ### 2026-06-27
 - **50-quest ladder** (static in `QuestManager.BuildQuests`): gentle hook (Garden levels 1-7), Wood phase (crafting), Stone phase (monuments). Wood unlocks at quest 10, Stone at quest 30. Creative descriptions with emoji and narrative.
