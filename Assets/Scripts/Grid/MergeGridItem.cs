@@ -62,6 +62,15 @@ namespace PocketGarden.Grid
         public void UpdateVisual(MergeItemData newData)
         {
             Data = newData;
+
+            // Seed → Sprout merge plays the growth frame animation instead of an instant swap.
+            if (newData.id == "garden_2")
+            {
+                RefreshProducer();
+                StartGrowthAnimation(newData);
+                return;
+            }
+
             ApplyVisual(newData);
             UpdateLabel();
 
@@ -70,6 +79,62 @@ namespace PocketGarden.Grid
 
             // Punch scale feedback (base scale is 1 because PPU is normalized per sprite)
             transform.localScale = Vector3.one * 1.3f;
+        }
+
+        // --- Seed → Sprout growth animation ---------------------------------
+
+        private const int GrowthFrameCount = 7;
+        private const float GrowthFrameTime = 0.07f; // seconds per frame (~0.49s total)
+        private static Sprite[] _growthFrames;
+        private Coroutine _growthRoutine;
+
+        private static Sprite[] LoadGrowthFrames()
+        {
+            if (_growthFrames != null) return _growthFrames;
+            var frames = new Sprite[GrowthFrameCount];
+            bool ok = true;
+            for (int i = 0; i < GrowthFrameCount; i++)
+            {
+                frames[i] = Resources.Load<Sprite>($"Items/seed_sprout/frame_{i}");
+                if (frames[i] == null) ok = false;
+            }
+            _growthFrames = ok ? frames : null;
+            return _growthFrames;
+        }
+
+        private void StartGrowthAnimation(MergeItemData data)
+        {
+            var frames = LoadGrowthFrames();
+            if (frames == null)
+            {
+                // Frames not imported yet — fall back to the normal sprite swap.
+                ApplyVisual(data);
+                UpdateLabel();
+                transform.localScale = Vector3.one * 1.3f;
+                return;
+            }
+
+            if (_label != null) { _label.text = ""; _label.gameObject.SetActive(false); }
+            _hasSprite = true;
+            _renderer.color = Color.white;
+
+            if (_growthRoutine != null) StopCoroutine(_growthRoutine);
+            _growthRoutine = StartCoroutine(GrowthAnimation(frames, data));
+        }
+
+        private System.Collections.IEnumerator GrowthAnimation(Sprite[] frames, MergeItemData data)
+        {
+            transform.localScale = Vector3.one; // hold steady while frames play
+            for (int i = 0; i < frames.Length; i++)
+            {
+                _renderer.sprite = frames[i];
+                yield return new WaitForSeconds(GrowthFrameTime);
+            }
+            // Settle on the canonical sprout sprite so it matches other garden_2 items, with a punch.
+            ApplyVisual(data);
+            UpdateLabel();
+            transform.localScale = Vector3.one * 1.2f;
+            _growthRoutine = null;
         }
 
         /// <summary>Loads the item's sprite from Resources/Items, falling back to a tinted square.</summary>

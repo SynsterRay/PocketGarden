@@ -39,34 +39,50 @@ namespace PocketGarden.Editor
             Directory.CreateDirectory(DestDir);
 
             int count = 0;
+
+            // 1) Copy the external item art PNGs into Resources/Items (top level) and configure them.
             foreach (var file in Directory.GetFiles(Source, "*.png"))
             {
                 string fileName = Path.GetFileName(file);
                 string dest = $"{DestDir}/{fileName}";
-
-                // Copy the PNG into Resources and let Unity create/refresh its asset entry.
                 File.Copy(file, dest, true);
                 AssetDatabase.ImportAsset(dest, ImportAssetOptions.ForceUpdate);
+                if (ConfigureSprite(dest)) count++;
+            }
 
-                // Read the real pixel dimensions from the freshly imported texture.
-                var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(dest);
-                int maxDim = tex != null ? Mathf.Max(tex.width, tex.height) : 256;
-
-                var imp = (TextureImporter)AssetImporter.GetAtPath(dest);
-                imp.textureType        = TextureImporterType.Sprite;
-                imp.spriteImportMode   = SpriteImportMode.Single;            // fix: NULL load in Multiple mode
-                imp.spritePixelsPerUnit = maxDim / TargetWorldSize;          // fix: unified size across rows
-                imp.spritePivot        = new Vector2(0.5f, 0.5f);
-                imp.alphaIsTransparency = true;
-                imp.mipmapEnabled      = false;
-                imp.filterMode         = FilterMode.Bilinear;
-                imp.SaveAndReimport();
-                count++;
+            // 2) Configure every PNG already under Resources/Items (incl. subfolders such as
+            //    seed_sprout/ animation frames) so they load as Single sprites at a unified size.
+            foreach (var dest in Directory.GetFiles(DestDir, "*.png", SearchOption.AllDirectories))
+            {
+                string assetPath = dest.Replace('\\', '/');
+                int idx = assetPath.IndexOf("Assets/");
+                if (idx > 0) assetPath = assetPath.Substring(idx);
+                if (ConfigureSprite(assetPath)) count++;
             }
 
             AssetDatabase.Refresh();
-            Debug.Log($"[ItemSpriteImporter] Imported {count} item sprites into {DestDir} " +
+            Debug.Log($"[ItemSpriteImporter] Configured {count} item sprites under {DestDir} " +
                       $"(Single mode, PPU normalized to {TargetWorldSize} world unit).");
+        }
+
+        /// <summary>Imports a single PNG as a properly sized Single sprite. Returns true on success.</summary>
+        private static bool ConfigureSprite(string assetPath)
+        {
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
+            int maxDim = tex != null ? Mathf.Max(tex.width, tex.height) : 256;
+
+            var imp = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+            if (imp == null) return false;
+
+            imp.textureType         = TextureImporterType.Sprite;
+            imp.spriteImportMode    = SpriteImportMode.Single;          // fix: NULL load in Multiple mode
+            imp.spritePixelsPerUnit = maxDim / TargetWorldSize;         // fix: unified size across rows
+            imp.spritePivot         = new Vector2(0.5f, 0.5f);
+            imp.alphaIsTransparency = true;
+            imp.mipmapEnabled       = false;
+            imp.filterMode          = FilterMode.Bilinear;
+            imp.SaveAndReimport();
+            return true;
         }
     }
 }
