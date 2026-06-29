@@ -80,8 +80,8 @@ namespace PocketGarden.Quests
             list.Add(Quest("q26", "wood_4", 2, 270, 0, "📦 Build 2 storage crates"));
             list.Add(Quest("q27", "wood_5", 1, 280, 5, "🪑 Craft a beautiful chair"));
             list.Add(Quest("q28", "garden_4", 2, 290, 0, "🪴 Shape 2 bushes into topiary"));
-            list.Add(Quest("q29", "wood_6", 1, 300, 0, "🏕️ Complete a second gazebo"));
-            list.Add(Quest("q30", "stone_1", 2, 310, 0, "💎 Place 2 pebbles as foundation", MergeChain.Stone));
+            list.Add(Quest("q29", "wood_6", 1, 300, 0, "🏕️ Complete a second gazebo", MergeChain.Stone));
+            list.Add(Quest("q30", "stone_1", 2, 310, 0, "💎 Place 2 pebbles as foundation"));
 
             // q31-50: Stone phase + Grind — monuments and epic structures
             list.Add(Quest("q31", "stone_1", 2, 320, 0, "💎 Place 2 pebbles as foundation"));

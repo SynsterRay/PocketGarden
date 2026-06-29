@@ -43,7 +43,7 @@ namespace PocketGarden.Core
         // so existing saves whose quest index is already past the unlock quest aren't stuck).
         // Public so QuestManager builds the ladder against the same thresholds.
         public const int WoodUnlockQuest = 10;
-        public const int StoneUnlockQuest = 30;
+        public const int StoneUnlockQuest = 29;
 
         public static bool IsChainUnlocked(MergeChain chain)
         {
