@@ -32,15 +32,22 @@ The id is the filename (e.g. `garden_3.png`). Each chain reads left→right as a
 | garden_7 | Magic Tree | "glowing magical tree with sparkles and soft golden light, flat 2D, whimsical" |
 
 ### 🪵 Wood — `wood_1..7` (warm browns)
-| id | Item | Prompt |
-|----|------|--------|
-| wood_1 | Twig | "a small brown twig, flat 2D, pastel" |
-| wood_2 | Log | "a short cut wood log with rings, flat 2D, warm brown" |
-| wood_3 | Plank | "a smooth wooden plank, flat 2D" |
-| wood_4 | Crate | "a small wooden crate, flat 2D, soft shadow" |
-| wood_5 | Furniture | "a cute wooden garden bench, flat 2D" |
-| wood_6 | Gazebo | "a small wooden gazebo, flat 2D, cozy" |
-| wood_7 | House | "a small charming wooden cottage, flat 2D, warm" |
+The loader (`MergeGridItem.FileMap`) maps each id to a descriptive PNG filename.
+Each merge into `wood_2..7` plays a frame folder under `Resources/Items/` (see below).
+| id | Item | file | Prompt |
+|----|------|------|--------|
+| wood_1 | Dead Tree | twig_three | "a bare leafless brown tree (dead/dry), flat 2D, pastel" |
+| wood_2 | Log | log | "a short cut wood log with rings, flat 2D, warm brown" |
+| wood_3 | Plank | plank | "a smooth wooden plank, flat 2D" |
+| wood_4 | Crate | crate | "a small wooden crate, flat 2D, soft shadow" |
+| wood_5 | Furniture | furniture | "a cute wooden chair, flat 2D" |
+| wood_6 | Gazebo | gazebo | "a small wooden gazebo, flat 2D, cozy" |
+| wood_7 | House | cottage_house | "a small charming wooden cottage, flat 2D, warm" |
+
+**Wood transition frame folders** (`Resources/Items/<folder>/frame_0..N.png`):
+`twig_three_to_log`, `log_to_plank`, `plank_to_crate`, `crate_to_furniture`,
+`furniture_to_gazebo`, `gazebo_to_cottage_house`. Sliced from the sheets in
+`pocket_garden_assets/wooden_assets/` by `Tools/slice_wood.py`.
 
 ### 🪨 Stone — `stone_1..7` (cool grays)
 | id | Item | Prompt |

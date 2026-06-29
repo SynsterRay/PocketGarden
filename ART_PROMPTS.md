@@ -27,16 +27,19 @@ Style: cute, simple, flat icon for a mobile merge game. No text. White backgroun
 ```
 Generate 7 separate game icons in cute flat 2D style, white background, no shadow, no outline, warm brown tones, each centered, 512x512px. Arrange them in a grid:
 
-1. A small twig (thin brown stick)
+1. A bare leafless tree (dead/dry brown tree, branches only)
 2. A wooden log (short round log with visible rings)
 3. A wooden plank (rectangular flat board)
 4. A wooden crate (simple box with plank texture)
-5. A piece of furniture (cute small chair or table)
+5. A piece of furniture (cute small chair)
 6. A garden gazebo (small wooden gazebo with roof)
 7. A cozy cottage house (tiny wooden house with chimney)
 
 Style: cute, simple, flat icon for a mobile merge game. No text. White background.
 ```
+
+> Wood Lv1 is the bare "Dead Tree" (twig_three art, replaces the old twig). Transition
+> sheets (twig_three_to_log … gazebo_to_cottage_house) are sliced by `Tools/slice_wood.py`.
 
 ---
 

@@ -98,6 +98,13 @@ namespace PocketGarden.Grid
             { "garden_5", "bush_three" },
             { "garden_6", "three_big_three" },
             { "garden_7", "three_magical_three" },
+            // Wood chain (Dead Tree onward).
+            { "wood_2", "twig_three_to_log" },
+            { "wood_3", "log_to_plank" },
+            { "wood_4", "plank_to_crate" },
+            { "wood_5", "crate_to_furniture" },
+            { "wood_6", "furniture_to_gazebo" },
+            { "wood_7", "gazebo_to_cottage_house" },
         };
 
         // Looping idle animation played once an item reaches its final form (Magic Tree).
@@ -208,6 +215,14 @@ namespace PocketGarden.Grid
             { "garden_5", "three" },
             { "garden_6", "big_three" },
             { "garden_7", "magical_three" },
+            // Wood chain. wood_1 (Dead Tree) uses the twig_three art.
+            { "wood_1", "twig_three" },
+            { "wood_2", "log" },
+            { "wood_3", "plank" },
+            { "wood_4", "crate" },
+            { "wood_5", "furniture" },
+            { "wood_6", "gazebo" },
+            { "wood_7", "cottage_house" },
         };
 
         private static Sprite LoadItemSprite(string id)

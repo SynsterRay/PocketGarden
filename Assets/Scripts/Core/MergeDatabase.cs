@@ -66,8 +66,8 @@ namespace PocketGarden.Core
                 list.Add(item);
             }
 
-            // Wood chain - browns
-            string[] woodNames = { "Twig", "Log", "Plank", "Crate", "Furniture", "Gazebo", "House" };
+            // Wood chain - browns (Lv1 "Dead Tree" uses twig_three art)
+            string[] woodNames = { "Dead Tree", "Log", "Plank", "Crate", "Furniture", "Gazebo", "House" };
             for (int i = 0; i < woodNames.Length; i++)
                 list.Add(new MergeItemData
                 {

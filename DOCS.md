@@ -30,8 +30,8 @@ A cozy merge puzzle mobile game — Unity 6 with URP 2D, targeting Android/iOS. 
 | Energy UI | ✅ | Top-left display with tick regen |
 | Quest UI | ✅ | Bottom bar with active quests + drop zone |
 | Coin/Gem UI | ✅ | Top-right displays (Coins + Gems) |
-| Item Sprites | ✅ | Garden chain real art (seed→magic tree), label fallback |
-| Growth Animations | ✅ | Frame-by-frame transition on every Garden merge + Magic Tree idle loop |
+| Item Sprites | ✅ | Garden + Wood chain real art (Wood Lv1 = Dead Tree / twig_three art), label fallback |
+| Growth Animations | ✅ | Frame-by-frame transition on every Garden & Wood merge + Magic Tree idle loop |
 | Editor Setup | ✅ | PocketGarden → Setup Scene (with EventSystem) |
 | Sprite Importer | ✅ | PocketGarden → Import Item Sprites (Single mode, PPU normalized) |
 
@@ -43,7 +43,7 @@ A cozy merge puzzle mobile game — Unity 6 with URP 2D, targeting Android/iOS. 
 - [ ] Push Notifications
 - [ ] Sound Effects / Music
 - [ ] Localization (multi-language)
-- [ ] Wood / Stone chain art (Garden art done; Wood/Stone still use colored squares)
+- [ ] Stone chain art (Garden + Wood art done; Stone still uses colored squares)
 - [ ] Seasonal events
 - [ ] VIP Pass
 - [ ] Analytics (Firebase)
@@ -69,7 +69,7 @@ PocketGarden.Editor     — SceneSetup
 | Chain | Lv1 | Lv2 | Lv3 | Lv4 | Lv5 | Lv6 | Lv7 |
 |-------|-----|-----|-----|-----|-----|-----|-----|
 | Garden | Seed | Sprout | Flower | Bush | Tree | Big Tree | Magic Tree |
-| Wood | Twig | Log | Plank | Crate | Furniture | Gazebo | House |
+| Wood | Dead Tree | Log | Plank | Crate | Furniture | Gazebo | House |
 | Stone | Pebble | Stone | Brick | Wall | Pillar | Fountain | Castle |
 
 ### Core Loop
@@ -116,6 +116,11 @@ Merge items on grid (5×7)
 6. Play
 
 ## Changelog
+
+### 2026-06-29
+- **Wood chain real art + growth animations** (mirrors the Garden chain). Stage sprites in `Resources/Items/`: `twig_three` (Dead Tree, **Wood Lv1** — replaces the old "Twig" placeholder + label), `log`, `plank`, `crate`, `furniture`, `gazebo`, `cottage_house`. Wood stays **7 levels**: Dead Tree → Log → Plank → Crate → Furniture → Gazebo → House.
+- Transition frame folders: `twig_three_to_log` (wood_1→2), `log_to_plank`, `plank_to_crate`, `crate_to_furniture`, `furniture_to_gazebo`, `gazebo_to_cottage_house` (frame_0..N). `MergeGridItem` FileMap/TransitionFolder + `MergeDatabase` woodNames updated; tree producers still make Log (`wood_2`); quest ids unchanged.
+- **Slicer** `Tools/slice_wood.py` (Python/PIL, offline): explicit per-sheet grids (most transitions 2×4=8 frames; `log_to_plank` is 1×7), even-division per row, small-component cleanup (drops sawdust/bleed, keeps exploded-plank frames), base-center anchored & bottom-aligned onto one uniform square canvas. Run **PocketGarden → Import Item Sprites** in Unity afterwards (Single mode, PPU normalized).
 
 ### 2026-06-28
 - **Real item art (Garden chain)**: PNGs (seed → sprout → flower → bush → tree → big tree → magic tree) load from `Resources/Items/{file}` via `MergeGridItem` (id→filename map). Colored-square + name-label remain as fallback when art is missing (Wood/Stone still use squares).

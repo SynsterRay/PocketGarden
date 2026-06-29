@@ -31,7 +31,7 @@ namespace PocketGarden.Quests
         private const int TotalQuests = 50;
 
         private static readonly string[] GardenNames = { "Seed", "Sprout", "Flower", "Bush", "Tree", "Big Tree", "Magic Tree" };
-        private static readonly string[] WoodNames   = { "Twig", "Log", "Plank", "Crate", "Furniture", "Gazebo", "House" };
+        private static readonly string[] WoodNames   = { "Dead Tree", "Log", "Plank", "Crate", "Furniture", "Gazebo", "House" };
         private static readonly string[] StoneNames  = { "Pebble", "Stone", "Brick", "Wall", "Pillar", "Fountain", "Castle" };
 
         private static readonly Quest[] AllQuests = BuildQuests();
