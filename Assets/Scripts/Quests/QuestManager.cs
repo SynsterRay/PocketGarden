@@ -171,39 +171,29 @@ namespace PocketGarden.Quests
         /// <summary>Try to deliver an item to a quest. Returns true if accepted.</summary>
         public bool TryDeliver(MergeItemData item)
         {
-            Quest target = null;
             foreach (var quest in _activeQuests)
             {
                 if (!quest.IsComplete && quest.requiredItemId == item.id)
                 {
-                    target = quest;
-                    break;
+                    quest.currentAmount++;
+                    OnQuestUpdated?.Invoke();
+
+                    if (quest.IsComplete)
+                    {
+                        CoinSystem.Add(quest.coinReward);
+                        if (quest.gemReward > 0) GemSystem.Add(quest.gemReward);
+                        if (quest.unlocksChain.HasValue)
+                            Progression.UnlockChain(quest.unlocksChain.Value);
+                        OnQuestComplete?.Invoke(quest);
+                        _questIndex++;
+                        PlayerPrefs.SetInt("MG_QuestIndex", _questIndex);
+                        PlayerPrefs.Save();
+                        LoadNextQuests();
+                    }
+                    return true;
                 }
             }
-            if (target == null) return false;
-
-            target.currentAmount++;
-            OnQuestUpdated?.Invoke();
-
-            if (target.IsComplete)
-            {
-                CoinSystem.Add(target.coinReward);
-                if (target.gemReward > 0) GemSystem.Add(target.gemReward);
-                if (target.unlocksChain.HasValue)
-                    Progression.UnlockChain(target.unlocksChain.Value);
-                OnQuestComplete?.Invoke(target);
-
-                // Advance index past all leading completed quests, then reload.
-                while (_activeQuests.Count > 0 && _activeQuests[0].IsComplete)
-                {
-                    _activeQuests.RemoveAt(0);
-                    _questIndex++;
-                }
-                PlayerPrefs.SetInt("MG_QuestIndex", _questIndex);
-                PlayerPrefs.Save();
-                LoadNextQuests();
-            }
-            return true;
+            return false;
         }
     }
 }
