@@ -50,15 +50,23 @@ Each merge into `wood_2..7` plays a frame folder under `Resources/Items/` (see b
 `pocket_garden_assets/wooden_assets/` by `Tools/slice_wood.py`.
 
 ### 🪨 Stone — `stone_1..7` (cool grays)
-| id | Item | Prompt |
-|----|------|--------|
-| stone_1 | Pebble | "a smooth small gray pebble, flat 2D" |
-| stone_2 | Stone | "a rounded gray stone, flat 2D" |
-| stone_3 | Brick | "a single red-gray brick, flat 2D" |
-| stone_4 | Wall | "a short stone wall section, flat 2D" |
-| stone_5 | Pillar | "a classic stone pillar, flat 2D" |
-| stone_6 | Fountain | "a pretty stone garden fountain with water, flat 2D" |
-| stone_7 | Castle | "a small whimsical stone castle, flat 2D, fairytale" |
+The loader (`MergeGridItem.FileMap`) maps each id to a descriptive PNG filename.
+Each merge into `stone_2..7` plays a frame folder under `Resources/Items/`.
+Castle (`stone_7`) plays a looping idle animation (`castle_animation`) once reached.
+| id | Item | file | Prompt |
+|----|------|------|--------|
+| stone_1 | Pebble | pebble | "a smooth small gray pebble, flat 2D" |
+| stone_2 | Stone | stone | "a rounded gray stone, flat 2D" |
+| stone_3 | Brick | brick | "a single red-gray brick, flat 2D" |
+| stone_4 | Wall | wall | "a short stone wall section, flat 2D" |
+| stone_5 | Pillar | pillar | "a classic stone pillar, flat 2D" |
+| stone_6 | Fountain | fountain | "a pretty stone garden fountain with water, flat 2D" |
+| stone_7 | Castle | castle | "a small whimsical stone castle, flat 2D, fairytale" |
+
+**Stone transition frame folders** (`Resources/Items/<folder>/frame_0..N.png`):
+`pebble_to_stone`, `stone_to_brick`, `brick_to_wall`, `wall_to_pillar`,
+`pillar_to_fountain`, `fountain_to_castle`. Idle: `castle_animation` (8 frames).
+Sliced from sheets in `pocket_garden_assets/stone_asset/` by `Tools/slice_stone.py`.
 
 ---
 

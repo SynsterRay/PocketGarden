@@ -105,10 +105,18 @@ namespace PocketGarden.Grid
             { "wood_5", "crate_to_furniture" },
             { "wood_6", "furniture_to_gazebo" },
             { "wood_7", "gazebo_to_cottage_house" },
+            // Stone chain.
+            { "stone_2", "pebble_to_stone" },
+            { "stone_3", "stone_to_brick" },
+            { "stone_4", "brick_to_wall" },
+            { "stone_5", "wall_to_pillar" },
+            { "stone_6", "pillar_to_fountain" },
+            { "stone_7", "fountain_to_castle" },
         };
 
         // Looping idle animation played once an item reaches its final form (Magic Tree).
         private const string MagicIdleFolder = "magical_three_animation";
+        private const string CastleIdleFolder = "castle_animation";
 
         /// <summary>Loads frame_0..N from a Resources/Items subfolder. Cached; null if none found.</summary>
         private static Sprite[] LoadFrames(string folder)
@@ -157,8 +165,13 @@ namespace PocketGarden.Grid
         /// <summary>Starts the looping Magic Tree idle animation for final-form items.</summary>
         private void MaybeStartIdle(MergeItemData data)
         {
-            if (data == null || data.id != "garden_7") return;
-            var frames = LoadFrames(MagicIdleFolder);
+            if (data == null) return;
+            string folder = null;
+            if (data.id == "garden_7") folder = MagicIdleFolder;
+            else if (data.id == "stone_7") folder = CastleIdleFolder;
+            if (folder == null) return;
+
+            var frames = LoadFrames(folder);
             if (frames == null) return;
 
             if (_animRoutine != null) StopCoroutine(_animRoutine);
@@ -223,6 +236,14 @@ namespace PocketGarden.Grid
             { "wood_5", "furniture" },
             { "wood_6", "gazebo" },
             { "wood_7", "cottage_house" },
+            // Stone chain.
+            { "stone_1", "pebble" },
+            { "stone_2", "stone" },
+            { "stone_3", "brick" },
+            { "stone_4", "wall" },
+            { "stone_5", "pillar" },
+            { "stone_6", "fountain" },
+            { "stone_7", "castle" },
         };
 
         private static Sprite LoadItemSprite(string id)
