@@ -148,11 +148,12 @@ namespace PocketGarden.Quests
 
         private void LoadNextQuests()
         {
-            _activeQuests.Clear();
-            // Show up to 2 quests at a time
-            for (int i = 0; i < 2 && _questIndex + i < AllQuests.Length; i++)
+            // Fill active list up to 2 quests without resetting already-tracked ones.
+            while (_activeQuests.Count < 2)
             {
-                var template = AllQuests[_questIndex + i];
+                int idx = _questIndex + _activeQuests.Count;
+                if (idx >= AllQuests.Length) break;
+                var template = AllQuests[idx];
                 _activeQuests.Add(new Quest
                 {
                     id = template.id,
@@ -185,9 +186,19 @@ namespace PocketGarden.Quests
                         if (quest.unlocksChain.HasValue)
                             Progression.UnlockChain(quest.unlocksChain.Value);
                         OnQuestComplete?.Invoke(quest);
+
+                        // Remove completed quest, advance index for each leading completed quest.
+                        _activeQuests.Remove(quest);
                         _questIndex++;
+                        // If the new first quest is also complete, advance past it too.
+                        while (_activeQuests.Count > 0 && _activeQuests[0].IsComplete)
+                        {
+                            _activeQuests.RemoveAt(0);
+                            _questIndex++;
+                        }
                         PlayerPrefs.SetInt("MG_QuestIndex", _questIndex);
                         PlayerPrefs.Save();
+                        // Fill remaining slots (preserves the other quest's progress).
                         LoadNextQuests();
                     }
                     return true;
