@@ -11,32 +11,26 @@ namespace PocketGarden.Editor
     /// <b>PocketGarden → Import Item Sprites</b>.
     ///
     /// Critical settings (each fixed a real bug):
-    ///   • <see cref="SpriteImportMode.Single"/> — a Multiple-mode sprite is stored as a named
-    ///     sub-asset, so <c>Resources.Load&lt;Sprite&gt;("Items/seed")</c> returns NULL. Single
-    ///     mode makes the sprite the main asset, so runtime loading works.
-    ///   • <b>CONTENT-box Pixels-Per-Unit</b> — PPU is normalized by the sprite's *opaque content*
-    ///     bounding box (alpha trimmed), not the full canvas. The Garden art is cropped tight
-    ///     (content fills 100% of the canvas) while Wood/Stone art has big transparent margins
-    ///     (content ≈ 55–69% of the canvas). Normalizing by the canvas made Garden render much
-    ///     larger than Wood/Stone. Normalizing by the *content* box makes every item's visible
-    ///     size identical at <c>localScale = 1</c>, regardless of how the PNG was cropped.
-    ///
-    /// Animation frame folders are normalized by the folder's LARGEST content box (one PPU for the
-    /// whole folder) so frames keep their relative growth (seed → sprout grows on screen) and the
-    /// final frame matches the canonical static sprite — no size pop when the merge settles.
+    ///   • <see cref="SpriteImportMode.Single"/> — a Multiple-mode sprite returns NULL on load.
+    ///   • <b>CONTENT-box PPU</b> — normalized by the sprite's opaque content bounding box so
+    ///     every item renders at the same visible size regardless of canvas margins.
+    ///   • <b>Content-center pivot</b> — the sprite pivot is placed at the center of the opaque
+    ///     content (not canvas center) so the item's visible art sits at the cell center.
+    ///     Animation folders share one average pivot so frames don't jitter.
     /// </summary>
     public static class ItemSpriteImporter
     {
         private const string Source  = @"C:\Users\mbaja\source\pocket_garden_assets";
         private const string DestDir = "Assets/Resources/Items";
-
-        /// <summary>Visible world-space size (max content dimension) every item should occupy.
-        /// The grid cell is 1.1 units; 0.72 keeps a clear margin and matches the old Wood/Stone
-        /// footprint, shrinking the over-sized Garden art down to the same level.</summary>
         private const float TargetContentWorldSize = 0.72f;
-
-        /// <summary>Alpha threshold (0–255) for what counts as "content" when trimming.</summary>
         private const byte AlphaThreshold = 10;
+
+        private struct SpriteInfo
+        {
+            public int contentMaxDim;
+            public float pivotX; // Unity pivot: 0-1, bottom-left origin
+            public float pivotY;
+        }
 
         [MenuItem("PocketGarden/Import Item Sprites")]
         public static void Import()
@@ -49,7 +43,6 @@ namespace PocketGarden.Editor
 
             Directory.CreateDirectory(DestDir);
 
-            // 1) Copy the external item art PNGs into Resources/Items (top level).
             foreach (var file in Directory.GetFiles(Source, "*.png"))
             {
                 string dest = $"{DestDir}/{Path.GetFileName(file)}";
@@ -57,21 +50,25 @@ namespace PocketGarden.Editor
                 AssetDatabase.ImportAsset(dest, ImportAssetOptions.ForceUpdate);
             }
 
-            // 2) Measure the opaque content box of every PNG and group by folder so a whole
-            //    animation folder shares one PPU (keeps relative frame scale + matches statics).
+            // Measure content box + pivot for every sprite.
             var diskPaths = Directory.GetFiles(DestDir, "*.png", SearchOption.AllDirectories);
-            var contentDim = new Dictionary<string, int>();       // diskPath -> content max dim
-            var folderMax  = new Dictionary<string, int>();        // folder   -> max content dim
+            var info = new Dictionary<string, SpriteInfo>();
+            var folderMaxDim = new Dictionary<string, int>();
+            var folderPivotSum = new Dictionary<string, (float sx, float sy, int n)>();
 
             foreach (var disk in diskPaths)
             {
-                int dim = MeasureContentMaxDim(disk);
-                contentDim[disk] = dim;
+                var si = MeasureContent(disk);
+                info[disk] = si;
                 string folder = Path.GetDirectoryName(disk);
-                folderMax[folder] = folderMax.TryGetValue(folder, out var cur) ? Mathf.Max(cur, dim) : dim;
+                folderMaxDim[folder] = folderMaxDim.TryGetValue(folder, out var cur)
+                    ? Mathf.Max(cur, si.contentMaxDim) : si.contentMaxDim;
+                if (!folderPivotSum.ContainsKey(folder))
+                    folderPivotSum[folder] = (0f, 0f, 0);
+                var (sx, sy, n) = folderPivotSum[folder];
+                folderPivotSum[folder] = (sx + si.pivotX, sy + si.pivotY, n + 1);
             }
 
-            // 3) Configure each sprite with a content-normalized PPU.
             int count = 0;
             foreach (var disk in diskPaths)
             {
@@ -79,35 +76,47 @@ namespace PocketGarden.Editor
                 int idx = assetPath.IndexOf("Assets/");
                 if (idx > 0) assetPath = assetPath.Substring(idx);
 
-                // Top-level statics normalize to their own content; folder frames share folderMax.
                 string folder = Path.GetDirectoryName(disk);
                 bool isTopLevel = string.Equals(
                     Path.GetFullPath(folder), Path.GetFullPath(DestDir),
                     System.StringComparison.OrdinalIgnoreCase);
-                int normDim = isTopLevel ? contentDim[disk] : folderMax[folder];
-                if (normDim <= 0) normDim = 256;
 
-                if (ConfigureSprite(assetPath, normDim / TargetContentWorldSize)) count++;
+                int normDim = isTopLevel ? info[disk].contentMaxDim : folderMaxDim[folder];
+                if (normDim <= 0) normDim = 256;
+                float ppu = normDim / TargetContentWorldSize;
+
+                float px, py;
+                if (isTopLevel)
+                {
+                    px = info[disk].pivotX;
+                    py = info[disk].pivotY;
+                }
+                else
+                {
+                    var (sx, sy, n) = folderPivotSum[folder];
+                    px = sx / n;
+                    py = sy / n;
+                }
+
+                if (ConfigureSprite(assetPath, ppu, new Vector2(px, py))) count++;
             }
 
             AssetDatabase.Refresh();
             Debug.Log($"[ItemSpriteImporter] Configured {count} sprites (Single mode, " +
-                      $"content-box normalized to {TargetContentWorldSize} world units).");
+                      $"content-box normalized to {TargetContentWorldSize} world units, content-centered pivot).");
         }
 
-        /// <summary>Decodes the PNG off disk and returns the max dimension of its opaque
-        /// (alpha-trimmed) content box, in pixels. Falls back to the full texture size.</summary>
-        private static int MeasureContentMaxDim(string diskPath)
+        private static SpriteInfo MeasureContent(string diskPath)
         {
             byte[] bytes;
             try { bytes = File.ReadAllBytes(diskPath); }
-            catch { return 0; }
+            catch { return new SpriteInfo { contentMaxDim = 0, pivotX = 0.5f, pivotY = 0.5f }; }
 
             var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
             if (!ImageConversion.LoadImage(tex, bytes))
             {
                 Object.DestroyImmediate(tex);
-                return 0;
+                return new SpriteInfo { contentMaxDim = 0, pivotX = 0.5f, pivotY = 0.5f };
             }
 
             int w = tex.width, h = tex.height;
@@ -129,12 +138,23 @@ namespace PocketGarden.Editor
             }
             Object.DestroyImmediate(tex);
 
-            if (maxX < 0) return Mathf.Max(w, h);            // fully transparent
-            return Mathf.Max(maxX - minX + 1, maxY - minY + 1);
+            if (maxX < 0)
+                return new SpriteInfo { contentMaxDim = Mathf.Max(w, h), pivotX = 0.5f, pivotY = 0.5f };
+
+            int dim = Mathf.Max(maxX - minX + 1, maxY - minY + 1);
+            // Content center in pixel coords (Unity texture: y=0 is bottom).
+            // GetPixels32 returns bottom-to-top, so minY/maxY are already in Unity coords.
+            float cx = (minX + maxX) / 2f;
+            float cy = (minY + maxY) / 2f;
+            return new SpriteInfo
+            {
+                contentMaxDim = dim,
+                pivotX = cx / w,
+                pivotY = cy / h
+            };
         }
 
-        /// <summary>Imports a PNG as a Single sprite at the given pixels-per-unit. Returns true on success.</summary>
-        private static bool ConfigureSprite(string assetPath, float ppu)
+        private static bool ConfigureSprite(string assetPath, float ppu, Vector2 pivot)
         {
             var imp = AssetImporter.GetAtPath(assetPath) as TextureImporter;
             if (imp == null) return false;
@@ -142,7 +162,7 @@ namespace PocketGarden.Editor
             imp.textureType         = TextureImporterType.Sprite;
             imp.spriteImportMode    = SpriteImportMode.Single;
             imp.spritePixelsPerUnit = Mathf.Max(1f, ppu);
-            imp.spritePivot         = new Vector2(0.5f, 0.5f);
+            imp.spritePivot         = pivot;
             imp.alphaIsTransparency = true;
             imp.mipmapEnabled       = false;
             imp.filterMode          = FilterMode.Bilinear;
