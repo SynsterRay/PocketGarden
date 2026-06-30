@@ -24,6 +24,8 @@ namespace PocketGarden.UI
         public static readonly Color EnergyTeal = new(0.20f, 0.70f, 0.55f);
         public static readonly Color Danger     = new(0.82f, 0.32f, 0.30f);
         public static readonly Color PanelBg    = new(1f, 1f, 1f, 0.98f);
+        public static readonly Color White      = new(1f, 1f, 1f, 1f);
+        public static readonly Color Border     = new(0.80f, 0.84f, 0.74f, 1f); // soft leaf-tinted rim
 
         private static Font _font;
         public static Font GetFont()
@@ -103,6 +105,35 @@ namespace PocketGarden.UI
             img.type = Image.Type.Sliced;
             Stretch(go.GetComponent<RectTransform>(), min, max);
             return go;
+        }
+
+        /// <summary>
+        /// A white (or tinted) panel with a thin rounded border — the standard gameplay panel look:
+        /// a rectangle with slightly rounded corners and a soft outline. Returns the inner FILL
+        /// object (parent your content to it); the border is drawn by an outer image behind it.
+        /// </summary>
+        public static GameObject BorderedPanel(Transform parent, Vector2 min, Vector2 max,
+            Color? fill = null, Color? border = null, string name = "Panel", float thickness = 4f)
+        {
+            var outer = new GameObject(name);
+            outer.transform.SetParent(parent, false);
+            var bimg = outer.AddComponent<Image>();
+            bimg.color = border ?? Border;
+            bimg.sprite = RoundedSprite();
+            bimg.type = Image.Type.Sliced;
+            Stretch(outer.GetComponent<RectTransform>(), min, max);
+
+            var inner = new GameObject("Fill");
+            inner.transform.SetParent(outer.transform, false);
+            var fimg = inner.AddComponent<Image>();
+            fimg.color = fill ?? White;
+            fimg.sprite = RoundedSprite();
+            fimg.type = Image.Type.Sliced;
+            var r = inner.GetComponent<RectTransform>();
+            r.anchorMin = Vector2.zero; r.anchorMax = Vector2.one;
+            r.offsetMin = new Vector2(thickness, thickness);
+            r.offsetMax = new Vector2(-thickness, -thickness);
+            return inner;
         }
 
         public static Button Button(Transform parent, string label, Vector2 min, Vector2 max,

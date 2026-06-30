@@ -134,6 +134,7 @@ GameObject:
   - component: {fileID: 155901778}
   - component: {fileID: 155901777}
   - component: {fileID: 155901776}
+  - component: {fileID: 155901783}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -231,6 +232,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &155901783
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 155901775}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f708efed619110d43a108a99d837d570, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PocketGarden.Audio.SFXManager
+  volume: 0.7
 --- !u!1 &396023852
 GameObject:
   m_ObjectHideFlags: 0
@@ -340,6 +354,8 @@ GameObject:
   - component: {fileID: 932540057}
   - component: {fileID: 932540056}
   - component: {fileID: 932540055}
+  - component: {fileID: 932540065}
+  - component: {fileID: 932540064}
   m_Layer: 0
   m_Name: Canvas
   m_TagString: Untagged
@@ -490,6 +506,30 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &932540064
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 932540054}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6677b089a6da90d4fb4e04e7871e7284, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PocketGarden.UI.SplashScreen
+--- !u!114 &932540065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 932540054}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a319a31255700344ebe9444364e2f46d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PocketGarden.UI.CoinPopup
 --- !u!1 &1603306114
 GameObject:
   m_ObjectHideFlags: 0

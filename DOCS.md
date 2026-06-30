@@ -116,6 +116,14 @@ Merge items on grid (5×7)
 
 ## Changelog
 
+### 2026-06-30
+- **Uniform item sizing (alpha-trimmed content normalization).** The Garden art is cropped tight (content fills 100% of its canvas) while Wood/Stone art has large transparent margins (content ≈ 34–80%). Because PPU was baked from the *canvas* size, Garden items rendered visibly larger than Wood/Stone. `ItemSpriteImporter` now normalizes PPU by each sprite's **opaque content box** (animation folders share their folder's largest content box, preserving growth + matching the static), so every item shows at **0.72 world units** at `localScale = 1`. The on-disk `.meta` files were re-baked to this (offline `Tools/normalize_ppu.py`, mirrors the importer) since the importer hadn't been re-run. Garden shrinks ~28% to match Wood/Stone.
+- **Startup splash** (`UI/SplashScreen.cs`): studio logo on a white screen (zoom-in → hold → fade), same as Magic Pairs. Logo art `Resources/UIButtons/developer_logo.png` + the coin icon `icon_coin.png` were copied from the Magic Pairs project; the card-reveal sound `Resources/Audio/Card_Flip.wav` too.
+- **Merge feedback**: every merge now plays the Magic Pairs card-reveal sound (`Audio/SFXManager.cs`, singleton) + a colored particle burst at the merge cell (`Grid/MergeFX.cs`). When coins are earned (quest delivery) a floating **"+N"** coin popup pops in, drifts up and fades out (`UI/CoinPopup.cs`).
+- **Gameplay panels restyled**: white fill with a soft rounded leaf-tinted border (`UIFactory.BorderedPanel`). The quest card (left) and the drag-to-deliver zone (right) now sit **side by side** on one band, freeing the very bottom strip for an **ad-banner placeholder** (full-width, labeled "Ad Banner").
+- **Chain generation parity + harder end-game**: when Wood/Stone unlock they now get a **starter batch** (2× Lv2 + 3× Lv1) so they reach parity with the Garden starter board instead of beginning from zero (`MergeGrid.SeedChainStarter`, fires once on unlock). Stone generator cooldown 26s → 22s. Grind-phase quests made tougher: q38 stones 3→4, q42 bricks 3→4, q44 walls 2→3, q46 pillars 2→3.
+- Scene setup is now **additive** (`Ensure<T>`), so re-running **PocketGarden → Setup Scene** wires the new SFXManager / CoinPopup / SplashScreen onto the existing scene.
+
 ### 2026-06-29
 - **Wood chain real art + growth animations** (mirrors the Garden chain). Stage sprites in `Resources/Items/`: `twig_three` (Dead Tree, **Wood Lv1** — replaces the old "Twig" placeholder + label), `log`, `plank`, `crate`, `furniture`, `gazebo`, `cottage_house`. Wood stays **7 levels**: Dead Tree → Log → Plank → Crate → Furniture → Gazebo → House.
 - Transition frame folders: `twig_three_to_log` (wood_1→2), `log_to_plank`, `plank_to_crate`, `crate_to_furniture`, `furniture_to_gazebo`, `gazebo_to_cottage_house` (frame_0..N). `MergeGridItem` FileMap/TransitionFolder + `MergeDatabase` woodNames updated; tree producers still make Log (`wood_2`); quest ids unchanged.

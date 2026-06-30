@@ -70,7 +70,36 @@ namespace PocketGarden.Grid
             Progression.OnChainUnlocked -= OnChainUnlocked;
         }
 
-        private void OnChainUnlocked(MergeChain chain) => TrySpawnGenerator(chain);
+        private void OnChainUnlocked(MergeChain chain)
+        {
+            TrySpawnGenerator(chain);
+            SeedChainStarter(chain);
+        }
+
+        /// <summary>
+        /// Gives a freshly unlocked chain a small starter batch so it has parity with the Garden
+        /// starter board — otherwise Wood/Stone begin from zero material and lag far behind the
+        /// seed chain, which only has a single (slower) generator to catch up. Fires once, at the
+        /// moment of unlock (the OnChainUnlocked event), not on every launch.
+        /// </summary>
+        private void SeedChainStarter(MergeChain chain)
+        {
+            if (chain == MergeChain.Garden) return;
+            string prefix = chain == MergeChain.Wood ? "wood" : "stone";
+            // Mirror the Garden starter: a couple of level-2s for an instant merge + some level-1s.
+            SpawnItemAnyEmpty($"{prefix}_2");
+            SpawnItemAnyEmpty($"{prefix}_2");
+            SpawnItemAnyEmpty($"{prefix}_1");
+            SpawnItemAnyEmpty($"{prefix}_1");
+            SpawnItemAnyEmpty($"{prefix}_1");
+            SaveSystem.SaveGrid(this);
+        }
+
+        private void SpawnItemAnyEmpty(string itemId)
+        {
+            var cell = FindEmptyCell();
+            if (cell != null) SpawnItem(itemId, cell.Row, cell.Col);
+        }
 
         private void TrySpawnGenerator(MergeChain chain)
         {
@@ -128,7 +157,8 @@ namespace PocketGarden.Grid
 
         // Screen fractions reserved by UI (so the board never hides behind them):
         //   top    → HudBar sits at 0.925–1.0; reserve to ~0.90 (small margin).
-        //   bottom → QuestCard (0.095–0.205) + DropZone (0.015–0.085); reserve to ~0.23.
+        //   bottom → Quest card + delivery band (0.088–0.215) above an ad-banner strip
+        //            (0.012–0.078); reserve to ~0.23.
         private const float TopReserveFrac = 0.90f;
         private const float BottomReserveFrac = 0.23f;
 
@@ -220,6 +250,11 @@ namespace PocketGarden.Grid
                 target.UpdateVisual(result);
                 OnMergeCompleted?.Invoke(result);
                 EnergySystem.Spend(1);
+
+                // Juicy feedback: card-reveal sound + a colored particle burst at the merge.
+                MergeFX.Spawn(target.transform.position, result.fallbackColor);
+                if (PocketGarden.Audio.SFXManager.Instance != null)
+                    PocketGarden.Audio.SFXManager.Instance.PlayMerge();
                 return true;
             }
 

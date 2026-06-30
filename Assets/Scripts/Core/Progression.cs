@@ -95,8 +95,8 @@ namespace PocketGarden.Core
         public static float GeneratorCooldown(MergeChain chain) => chain switch
         {
             MergeChain.Garden => 8f,
-            MergeChain.Wood => 16f,
-            MergeChain.Stone => 26f,
+            MergeChain.Wood => 15f,
+            MergeChain.Stone => 22f,
             _ => 30f
         };
 

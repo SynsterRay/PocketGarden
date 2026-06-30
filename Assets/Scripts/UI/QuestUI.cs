@@ -22,21 +22,36 @@ namespace PocketGarden.UI
             var canvas = FindAnyObjectByType<Canvas>();
             if (canvas == null) return;
 
-            // Drop zone (bottom strip).
-            var dropZone = UIFactory.Panel(canvas.transform, new Vector2(0.04f, 0.015f),
-                new Vector2(0.96f, 0.085f), new Color(0.30f, 0.78f, 0.42f, 0.92f), "QuestDropZone");
-            _dropZoneRect = dropZone.GetComponent<RectTransform>();
-            dropZone.GetComponent<Image>().raycastTarget = false;
-            var dzLabel = UIFactory.Text(dropZone.transform, "Drag items here to deliver",
-                Vector2.zero, Vector2.one, 22, Color.white);
-            dzLabel.raycastTarget = false;
+            // --- Ad banner placeholder (very bottom strip, full width) -------------------
+            // Reserves a standard mobile banner slot below the gameplay panels.
+            var banner = UIFactory.BorderedPanel(canvas.transform, new Vector2(0.04f, 0.012f),
+                new Vector2(0.96f, 0.078f), new Color(0.96f, 0.97f, 0.93f, 1f), UIFactory.Border, "AdBannerPlaceholder");
+            banner.GetComponent<Image>().raycastTarget = false;
+            var adLabel = UIFactory.Text(banner.transform, "Ad Banner", Vector2.zero, Vector2.one,
+                20, new Color(0.6f, 0.62f, 0.58f));
+            adLabel.raycastTarget = false;
 
-            // Quest card (above drop zone).
-            var card = UIFactory.Panel(canvas.transform, new Vector2(0.04f, 0.095f),
-                new Vector2(0.96f, 0.205f), UIFactory.PanelBg, "QuestCard");
-            _questText = UIFactory.Text(card.transform, "", new Vector2(0.04f, 0.05f),
-                new Vector2(0.96f, 0.95f), 22, UIFactory.Ink);
+            // --- Quest + delivery band (side by side, level with each other) -------------
+            // Quest card on the LEFT, the drag-to-deliver zone on the RIGHT.
+            const float bandBottom = 0.088f, bandTop = 0.215f;
+
+            // Quest card (white, light rounded border).
+            var card = UIFactory.BorderedPanel(canvas.transform, new Vector2(0.04f, bandBottom),
+                new Vector2(0.55f, bandTop), UIFactory.White, UIFactory.Border, "QuestCard");
+            _questText = UIFactory.Text(card.transform, "", new Vector2(0.06f, 0.06f),
+                new Vector2(0.96f, 0.94f), 18, UIFactory.Ink);
             _questText.alignment = TextAnchor.MiddleLeft;
+
+            // Delivery / drag zone (white with leaf-green border so it reads as a drop target).
+            var dropFill = UIFactory.BorderedPanel(canvas.transform, new Vector2(0.57f, bandBottom),
+                new Vector2(0.96f, bandTop), new Color(0.90f, 0.97f, 0.90f, 1f), UIFactory.Leaf, "QuestDropZone");
+            // Use the OUTER panel rect for hit-testing the full footprint.
+            _dropZoneRect = dropFill.transform.parent.GetComponent<RectTransform>();
+            dropFill.GetComponent<Image>().raycastTarget = false;
+            dropFill.transform.parent.GetComponent<Image>().raycastTarget = false;
+            var dzLabel = UIFactory.Text(dropFill.transform, "Drag items\nhere to deliver",
+                Vector2.zero, Vector2.one, 18, UIFactory.LeafDark);
+            dzLabel.raycastTarget = false;
 
             QuestManager.OnQuestUpdated += UpdateQuests;
             UpdateQuests();

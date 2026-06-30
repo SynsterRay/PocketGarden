@@ -21,35 +21,39 @@ namespace PocketGarden.Editor
                 cam.clearFlags = CameraClearFlags.SolidColor;
             }
 
-            // GameManager
-            if (GameObject.Find("GameManager") == null)
-            {
-                var gm = new GameObject("GameManager");
-                gm.AddComponent<Core.GameManager>();
-                gm.AddComponent<Grid.MergeGrid>();
-                gm.AddComponent<Grid.DragDropHandler>();
-                gm.AddComponent<Quests.QuestManager>();
-                gm.AddComponent<Core.IAPManager>();
-                gm.AddComponent<Ads.AdManager>();
-            }
+            // GameManager — create if missing, then additively ensure each system component
+            // (so re-running Setup wires in newly added systems like SFXManager on old scenes).
+            var gm = GameObject.Find("GameManager");
+            if (gm == null) gm = new GameObject("GameManager");
+            Ensure<Core.GameManager>(gm);
+            Ensure<Grid.MergeGrid>(gm);
+            Ensure<Grid.DragDropHandler>(gm);
+            Ensure<Quests.QuestManager>(gm);
+            Ensure<Core.IAPManager>(gm);
+            Ensure<Ads.AdManager>(gm);
+            Ensure<Audio.SFXManager>(gm);
 
             // Canvas
-            if (FindAnyObjectByType<Canvas>() == null)
+            var canvas = Object.FindAnyObjectByType<Canvas>();
+            if (canvas == null)
             {
                 var canvasGo = new GameObject("Canvas");
-                var canvas = canvasGo.AddComponent<Canvas>();
+                canvas = canvasGo.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
                 var scaler = canvasGo.AddComponent<CanvasScaler>();
                 scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
                 scaler.referenceResolution = new Vector2(1080f, 1920f);
                 scaler.matchWidthOrHeight = 1f;
                 canvasGo.AddComponent<GraphicRaycaster>();
-                canvasGo.AddComponent<UI.HudBar>();
-                canvasGo.AddComponent<UI.QuestUI>();
-                canvasGo.AddComponent<UI.TutorialOverlay>();
-                canvasGo.AddComponent<UI.DailyBonus>();
-                canvasGo.AddComponent<UI.OfferManager>();
             }
+            var c = canvas.gameObject;
+            Ensure<UI.HudBar>(c);
+            Ensure<UI.QuestUI>(c);
+            Ensure<UI.TutorialOverlay>(c);
+            Ensure<UI.DailyBonus>(c);
+            Ensure<UI.OfferManager>(c);
+            Ensure<UI.CoinPopup>(c);
+            Ensure<UI.SplashScreen>(c);
 
             // EventSystem (required for UI clicks)
             if (Object.FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
@@ -59,13 +63,14 @@ namespace PocketGarden.Editor
                 es.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
             }
 
+            EditorSceneManager.MarkAllScenesDirty();
             EditorSceneManager.SaveOpenScenes();
             Debug.Log("[PocketGarden] Scene setup complete!");
         }
 
-        private static T FindAnyObjectByType<T>() where T : Object
+        private static void Ensure<T>(GameObject go) where T : Component
         {
-            return Object.FindAnyObjectByType<T>();
+            if (go.GetComponent<T>() == null) go.AddComponent<T>();
         }
     }
 }
