@@ -82,6 +82,10 @@ def main():
                      "spritePixelsToUnits: %.3f" % ppu, txt)
         new = re.sub(r"spritePivot: \{x: [0-9.]+, y: [0-9.]+\}",
                      "spritePivot: {x: %.4f, y: %.4f}" % (piv_x, piv_y), new)
+        # Unity ignores spritePivot unless alignment is Custom (9). The relevant field is the
+        # top-level "alignment:" immediately preceding "spritePivot:".
+        new = re.sub(r"alignment: \d+(\s*\n\s*spritePivot:)",
+                     r"alignment: 9\1", new)
         if new != txt:
             open(meta, "w", encoding="utf-8").write(new)
             patched += 1

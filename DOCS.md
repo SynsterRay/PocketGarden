@@ -34,6 +34,11 @@ A cozy merge puzzle mobile game — Unity 6 with URP 2D, targeting Android/iOS. 
 | Growth Animations | ✅ | Frame-by-frame transition on every merge + Magic Tree & Castle idle loops |
 | Editor Setup | ✅ | PocketGarden → Setup Scene (with EventSystem) |
 | Sprite Importer | ✅ | PocketGarden → Import Item Sprites (Single mode, PPU normalized) |
+| Splash Screen | ✅ | Studio logo zoom-in → fade (mirrors Magic Pairs) |
+| Merge SFX | ✅ | Card-flip sound on merge + level-up jingle on quest complete |
+| Merge Particles | ✅ | Colored particle burst at merge cell |
+| Coin Popup | ✅ | Floating spinning "+N" that drifts up and fades |
+| Drag Proxy | ✅ | UI Image follows finger above all panels during drag |
 
 ### Not Yet Implemented
 
@@ -123,6 +128,10 @@ Merge items on grid (5×7)
 - **Gameplay panels restyled**: white fill with a soft rounded leaf-tinted border (`UIFactory.BorderedPanel`). The quest card (left) and the drag-to-deliver zone (right) now sit **side by side** on one band, freeing the very bottom strip for an **ad-banner placeholder** (full-width, labeled "Ad Banner").
 - **Chain generation parity + harder end-game**: when Wood/Stone unlock they now get a **starter batch** (2× Lv2 + 3× Lv1) so they reach parity with the Garden starter board instead of beginning from zero (`MergeGrid.SeedChainStarter`, fires once on unlock). Stone generator cooldown 26s → 22s. Grind-phase quests made tougher: q38 stones 3→4, q42 bricks 3→4, q44 walls 2→3, q46 pillars 2→3.
 - Scene setup is now **additive** (`Ensure<T>`), so re-running **PocketGarden → Setup Scene** wires the new SFXManager / CoinPopup / SplashScreen onto the existing scene.
+- **Level-up sound** (`Audio/Level_Complete.mp3` from Magic Pairs): `SFXManager` auto-plays it on `QuestManager.OnQuestComplete`.
+- **Drag proxy above UI**: `DragDropHandler` spawns a temporary UI Image on the Canvas (topmost sibling) during drag so the item is always visible above the delivery/quest panels (Screen Space Overlay always covers world-space sprites).
+- **Spinning coin popup**: `CoinPopup` uses a gold rounded-rect with scaleX oscillation (cos wave) to simulate a 3D rotating coin instead of a static icon.
+- **Content-centered sprite pivot** (fix: items displaced from cell center). Wood/Stone sprites have content offset from canvas center (up to 34% Y). With `alignment: 0` (Center), Unity ignores the `spritePivot` field. Fix: `normalize_ppu.py` + `ItemSpriteImporter` now set `alignment: 9` (Custom) + pivot = center of the opaque content box. Animation folders share an averaged pivot to prevent jitter.
 
 ### 2026-06-29
 - **Wood chain real art + growth animations** (mirrors the Garden chain). Stage sprites in `Resources/Items/`: `twig_three` (Dead Tree, **Wood Lv1** — replaces the old "Twig" placeholder + label), `log`, `plank`, `crate`, `furniture`, `gazebo`, `cottage_house`. Wood stays **7 levels**: Dead Tree → Log → Plank → Crate → Furniture → Gazebo → House.

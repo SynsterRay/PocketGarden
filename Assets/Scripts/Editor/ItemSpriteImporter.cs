@@ -162,10 +162,18 @@ namespace PocketGarden.Editor
             imp.textureType         = TextureImporterType.Sprite;
             imp.spriteImportMode    = SpriteImportMode.Single;
             imp.spritePixelsPerUnit = Mathf.Max(1f, ppu);
-            imp.spritePivot         = pivot;
             imp.alphaIsTransparency = true;
             imp.mipmapEnabled       = false;
             imp.filterMode          = FilterMode.Bilinear;
+
+            // A custom spritePivot is only honored when alignment == Custom (9); otherwise Unity
+            // uses the canvas center and items with off-center content render displaced.
+            var settings = new TextureImporterSettings();
+            imp.ReadTextureSettings(settings);
+            settings.spriteAlignment = (int)SpriteAlignment.Custom;
+            settings.spritePivot     = pivot;
+            imp.SetTextureSettings(settings);
+
             imp.SaveAndReimport();
             return true;
         }
