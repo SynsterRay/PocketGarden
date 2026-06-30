@@ -15,10 +15,16 @@ namespace PocketGarden.Grid
         private float _lastTapTime;
         private MergeGridItem _lastTapItem;
 
+        // UI drag proxy so the dragged item renders ABOVE Canvas panels (delivery zone etc.)
+        private Canvas _canvas;
+        private GameObject _dragProxy;
+        private UnityEngine.UI.Image _dragProxyImage;
+
         private void Start()
         {
             _cam = Camera.main;
             _grid = FindAnyObjectByType<MergeGrid>();
+            _canvas = FindAnyObjectByType<Canvas>();
         }
 
         private void Update()
@@ -97,6 +103,9 @@ namespace PocketGarden.Grid
                 var sr = _dragging.GetComponent<SpriteRenderer>();
                 if (sr != null) sr.sortingOrder = 20;
                 _dragging.transform.localScale = Vector3.one * 1.15f;
+
+                // Create a UI proxy on the Canvas so the item renders ABOVE all panels.
+                CreateDragProxy(sr, screenPos);
                 return;
             }
 
@@ -113,6 +122,15 @@ namespace PocketGarden.Grid
             worldPos.z = 0;
             _dragging.transform.position = worldPos + _offset;
 
+            // Move UI proxy to follow finger (screen space).
+            if (_dragProxy != null)
+            {
+                var rt = _dragProxy.GetComponent<RectTransform>();
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    _canvas.GetComponent<RectTransform>(), screenPos, null, out var local);
+                rt.anchoredPosition = local;
+            }
+
             var targetCell = _grid.GetCellAt(worldPos);
             for (int r = 0; r < _grid.Rows; r++)
                 for (int c = 0; c < _grid.Cols; c++)
@@ -123,6 +141,9 @@ namespace PocketGarden.Grid
 
         private void EndDrag(Vector2 screenPos)
         {
+            // Destroy the UI proxy.
+            DestroyDragProxy();
+
             for (int r = 0; r < _grid.Rows; r++)
                 for (int c = 0; c < _grid.Cols; c++)
                     _grid.Cells[r, c].SetHighlight(false);
@@ -175,6 +196,48 @@ namespace PocketGarden.Grid
 
             _dragging = null;
             _originCell = null;
+        }
+
+        // --- Drag Proxy (renders above Canvas UI panels) ---------------------
+
+        private void CreateDragProxy(SpriteRenderer sr, Vector2 screenPos)
+        {
+            if (_canvas == null || sr == null || sr.sprite == null) return;
+
+            _dragProxy = new GameObject("DragProxy");
+            _dragProxy.transform.SetParent(_canvas.transform, false);
+            _dragProxy.transform.SetAsLastSibling(); // topmost in Canvas
+
+            _dragProxyImage = _dragProxy.AddComponent<UnityEngine.UI.Image>();
+            _dragProxyImage.sprite = sr.sprite;
+            _dragProxyImage.preserveAspect = true;
+            _dragProxyImage.raycastTarget = false;
+
+            var rt = _dragProxy.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(100f, 100f); // approximate screen-size of the item
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                _canvas.GetComponent<RectTransform>(), screenPos, null, out var local);
+            rt.anchoredPosition = local;
+
+            // Make the world-space sprite semi-transparent so player sees both feedback.
+            sr.color = new Color(1f, 1f, 1f, 0.35f);
+        }
+
+        private void DestroyDragProxy()
+        {
+            if (_dragProxy != null)
+            {
+                Destroy(_dragProxy);
+                _dragProxy = null;
+                _dragProxyImage = null;
+            }
+
+            // Restore full opacity on the world-space sprite.
+            if (_dragging != null)
+            {
+                var sr = _dragging.GetComponent<SpriteRenderer>();
+                if (sr != null) sr.color = Color.white;
+            }
         }
     }
 }
