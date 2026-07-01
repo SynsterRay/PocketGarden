@@ -4,7 +4,7 @@
 
 A cozy merge puzzle mobile game — Unity 6 with URP 2D, targeting Android/iOS. Merge items, complete quests, and decorate your garden.
 
-## Project Status (2026-06-28)
+## Project Status (2026-07-01)
 
 ### Implemented
 
@@ -16,17 +16,17 @@ A cozy merge puzzle mobile game — Unity 6 with URP 2D, targeting Android/iOS. 
 | Drag & Drop | ✅ | Touch + mouse input (Input System), priority handling |
 | Energy System | ✅ | 30 max, +1/3min, offline regen |
 | Coin System | ✅ | Currency earned from quests |
-| Gem System | ✅ | Premium currency (IAP) |
+| Gem System | ✅ | Premium currency (IAP), persistent PlayerPrefs |
 | Quest System | ✅ | 60 quests with creative descriptions, unlock chains |
 | Quest Drop Zone | ✅ | Green bar at bottom — drag items to deliver |
 | Generators | ✅ | 3 generators (Garden/Wood/Stone) with cooldown timers |
 | Generator Tap | ✅ | Tap yellow indicator to produce items |
-| Save/Load | ✅ | Board state persists (PlayerPrefs + JSON, auto-save) |
+| Save/Load | ✅ | Board state persists (PlayerPrefs + JSON, auto-save, versioned migrator) |
 | Daily Bonus | ✅ | Streak-based energy + coins popup |
 | Shop UI | ✅ | IAP placeholders, rewarded ad button, buy buttons |
 | Shop Catalog | ✅ | 9 IAP products + 3 Ad Unit ID placeholders |
-| Settings Menu | ✅ | Music/SFX toggle, language, reset, rate us, credits |
-| Tutorial | ✅ | 4-page overlay on every start |
+| Settings Menu | ✅ | Music/SFX toggle, language, reset, rate us, How to Play, credits |
+| Tutorial | ✅ | 4-page overlay on first run only (PlayerPrefs flag) |
 | Energy UI | ✅ | Top-left display with tick regen |
 | Quest UI | ✅ | Bottom bar with active quests + drop zone |
 | Coin/Gem UI | ✅ | Top-right displays (Coins + Gems) |
@@ -39,6 +39,11 @@ A cozy merge puzzle mobile game — Unity 6 with URP 2D, targeting Android/iOS. 
 | Merge Particles | ✅ | Colored particle burst at merge cell |
 | Coin Popup | ✅ | Floating spinning "+N" that drifts up and fades |
 | Drag Proxy | ✅ | UI Image follows finger above all panels during drag |
+| Delivery Animation | ✅ | Item flies arc to quest card → shrinks → checkmark |
+| Haptic Feedback | ✅ | Vibration on merge, delivery, generator tap |
+| Board Full Popup | ✅ | Grid shake + toast "Board full!" warning |
+| Idle Bounce | ✅ | Items breathe (±2% scaleY, phased per instance) |
+| Particle Trail | ✅ | Gold sparkles follow dragged item during drag |
 
 ### Not Yet Implemented
 
@@ -64,7 +69,7 @@ GitHub: https://github.com/SynsterRay/PocketGarden
 PocketGarden.Core       — GameManager, EnergySystem, CoinSystem, GemSystem, Progression, MergeDatabase, MergeItemData, ShopCatalog, SaveSystem
 PocketGarden.Grid       — MergeGrid, GridCell, MergeGridItem, DragDropHandler, Generator
 PocketGarden.Quests     — QuestManager, Quest
-PocketGarden.UI         — UIFactory, HudBar, QuestUI, ShopUI, MainMenu, OfferManager, DailyBonus, TutorialOverlay
+PocketGarden.UI         — UIFactory, HudBar, QuestUI, ShopUI, MainMenu, OfferManager, DailyBonus, TutorialOverlay, DeliveryAnimation, BoardFullPopup, CoinPopup, SplashScreen, GemConfirmPopup
 PocketGarden.Editor     — SceneSetup
 ```
 
