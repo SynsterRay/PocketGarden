@@ -20,6 +20,9 @@ namespace PocketGarden.Grid
         private GameObject _dragProxy;
         private UnityEngine.UI.Image _dragProxyImage;
 
+        // 🟢 Particle trail during drag
+        private ParticleSystem _dragTrail;
+
         private void Start()
         {
             _cam = Camera.main;
@@ -86,8 +89,9 @@ namespace PocketGarden.Grid
                     var qm = FindAnyObjectByType<QuestManager>();
                     if (qm != null && qm.TryDeliver(item.Data))
                     {
+                        // Delivery animation instead of instant destroy.
+                        PlayDeliveryAnim(item.gameObject, screenPos, item.GetComponent<SpriteRenderer>()?.sprite);
                         cellWithItem.Item = null;
-                        Destroy(item.gameObject);
                         _lastTapItem = null;
                         SaveSystem.SaveGrid(_grid);
                         return;
@@ -106,6 +110,9 @@ namespace PocketGarden.Grid
 
                 // Create a UI proxy on the Canvas so the item renders ABOVE all panels.
                 CreateDragProxy(sr, screenPos);
+
+                // 🟢 Start particle trail
+                StartDragTrail(worldPos);
                 return;
             }
 
@@ -113,6 +120,7 @@ namespace PocketGarden.Grid
             if (readyGen != null)
             {
                 readyGen.TryProduce();
+                TriggerHaptic();
             }
         }
 
@@ -131,6 +139,10 @@ namespace PocketGarden.Grid
                 rt.anchoredPosition = local;
             }
 
+            // 🟢 Move particle trail
+            if (_dragTrail != null)
+                _dragTrail.transform.position = worldPos + _offset;
+
             var targetCell = _grid.GetCellAt(worldPos);
             for (int r = 0; r < _grid.Rows; r++)
                 for (int c = 0; c < _grid.Cols; c++)
@@ -141,8 +153,9 @@ namespace PocketGarden.Grid
 
         private void EndDrag(Vector2 screenPos)
         {
-            // Destroy the UI proxy.
+            // Destroy the UI proxy and particle trail.
             DestroyDragProxy();
+            StopDragTrail();
 
             for (int r = 0; r < _grid.Rows; r++)
                 for (int c = 0; c < _grid.Cols; c++)
@@ -156,7 +169,9 @@ namespace PocketGarden.Grid
                 if (qm != null && qm.TryDeliver(_dragging.Data))
                 {
                     _originCell.Item = null;
-                    Destroy(_dragging.gameObject);
+                    // 🟡 Delivery animation
+                    var sprite = _dragging.GetComponent<SpriteRenderer>()?.sprite;
+                    PlayDeliveryAnim(_dragging.gameObject, screenPos, sprite);
                     _dragging = null;
                     _originCell = null;
                     SaveSystem.SaveGrid(_grid);
@@ -171,7 +186,10 @@ namespace PocketGarden.Grid
 
             bool success = false;
             if (targetCell != null && targetCell != _originCell)
+            {
                 success = _grid.TryMerge(_dragging, targetCell);
+                if (success) TriggerHaptic(); // 🟡 Haptic on merge
+            }
 
             // Tap (no move/merge) on a ready producer item → produce
             if (!success && _dragging != null
@@ -179,7 +197,10 @@ namespace PocketGarden.Grid
                 && _dragging.IsProducerReady)
             {
                 if (_dragging.TryProduce())
+                {
+                    TriggerHaptic();
                     SaveSystem.SaveGrid(_grid);
+                }
             }
 
             if (!success && _dragging != null)
@@ -196,6 +217,32 @@ namespace PocketGarden.Grid
 
             _dragging = null;
             _originCell = null;
+        }
+
+        // --- Delivery animation integration ----------------------------------
+
+        private void PlayDeliveryAnim(GameObject itemGo, Vector2 screenPos, Sprite sprite)
+        {
+            var anim = UI.DeliveryAnimation.Instance;
+            if (anim != null && sprite != null)
+            {
+                // Target: approximate position of the quest card (left-center of screen).
+                var targetScreen = new Vector2(Screen.width * 0.3f, Screen.height * 0.15f);
+                anim.Play(itemGo, screenPos, targetScreen, sprite);
+            }
+            else
+            {
+                Destroy(itemGo);
+            }
+        }
+
+        // --- Haptic feedback -------------------------------------------------
+
+        private static void TriggerHaptic()
+        {
+            #if UNITY_ANDROID || UNITY_IOS
+            Handheld.Vibrate();
+            #endif
         }
 
         // --- Drag Proxy (renders above Canvas UI panels) ---------------------
@@ -237,6 +284,65 @@ namespace PocketGarden.Grid
             {
                 var sr = _dragging.GetComponent<SpriteRenderer>();
                 if (sr != null) sr.color = Color.white;
+            }
+        }
+
+        // --- 🟢 Particle trail during drag -----------------------------------
+
+        private void StartDragTrail(Vector3 worldPos)
+        {
+            var go = new GameObject("DragTrail");
+            go.transform.position = worldPos;
+            _dragTrail = go.AddComponent<ParticleSystem>();
+            _dragTrail.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+            var main = _dragTrail.main;
+            main.duration = 10f;
+            main.startLifetime = 0.4f;
+            main.startSpeed = 0.3f;
+            main.startSize = 0.08f;
+            main.startColor = new Color(1f, 0.9f, 0.4f, 0.8f); // warm gold sparkle
+            main.gravityModifier = 0.3f;
+            main.maxParticles = 40;
+            main.loop = true;
+            main.playOnAwake = false;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+
+            var emission = _dragTrail.emission;
+            emission.rateOverTime = 30f;
+
+            var shape = _dragTrail.shape;
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.radius = 0.08f;
+
+            var sizeOverLife = _dragTrail.sizeOverLifetime;
+            sizeOverLife.enabled = true;
+            sizeOverLife.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 0f));
+
+            var colorOverLife = _dragTrail.colorOverLifetime;
+            colorOverLife.enabled = true;
+            var grad = new Gradient();
+            grad.SetKeys(
+                new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(new Color(1f, 0.8f, 0.2f), 1f) },
+                new[] { new GradientAlphaKey(0.8f, 0f), new GradientAlphaKey(0f, 1f) });
+            colorOverLife.color = grad;
+
+            var renderer = go.GetComponent<ParticleSystemRenderer>();
+            renderer.material = new Material(Shader.Find("Particles/Standard Unlit")
+                ?? Shader.Find("Universal Render Pipeline/Particles/Unlit")
+                ?? Shader.Find("Sprites/Default"));
+            renderer.sortingOrder = 25;
+
+            _dragTrail.Play();
+        }
+
+        private void StopDragTrail()
+        {
+            if (_dragTrail != null)
+            {
+                _dragTrail.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+                Destroy(_dragTrail.gameObject, 1f); // let existing particles fade
+                _dragTrail = null;
             }
         }
     }

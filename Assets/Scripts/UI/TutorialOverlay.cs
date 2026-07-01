@@ -8,6 +8,8 @@ namespace PocketGarden.UI
         private GameObject _panel;
         private int _page;
 
+        private const string TutorialSeenKey = "PG_TutorialSeen";
+
         private static readonly string[] Pages =
         {
             "🔀 Drag identical items onto each other to merge them into a higher level!",
@@ -18,7 +20,21 @@ namespace PocketGarden.UI
 
         private void Start()
         {
-            Show();
+            // Show tutorial only on first run (or when manually triggered via Settings).
+            if (PlayerPrefs.GetInt(TutorialSeenKey, 0) == 0)
+                Show();
+            else
+                Destroy(this);
+        }
+
+        /// <summary>Public so Settings can re-trigger the tutorial ("How to Play" button).</summary>
+        public static void ShowTutorial()
+        {
+            var canvas = Object.FindAnyObjectByType<Canvas>();
+            if (canvas == null) return;
+            var existing = Object.FindAnyObjectByType<TutorialOverlay>();
+            if (existing != null) return; // already showing
+            canvas.gameObject.AddComponent<TutorialOverlay>().Show();
         }
 
         private void Show()
@@ -95,6 +111,9 @@ namespace PocketGarden.UI
             _page++;
             if (_page >= Pages.Length)
             {
+                // Mark as seen so it doesn't show again.
+                PlayerPrefs.SetInt(TutorialSeenKey, 1);
+                PlayerPrefs.Save();
                 Destroy(_panel);
                 Destroy(this);
                 return;

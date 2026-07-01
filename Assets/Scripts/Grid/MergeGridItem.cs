@@ -253,11 +253,27 @@ namespace PocketGarden.Grid
             return Resources.Load<Sprite>($"Items/{file}");
         }
 
+        // Idle breath phase offset (unique per item instance, avoids synchronized breathing).
+        private float _breathPhase;
+
+        private void Awake()
+        {
+            _breathPhase = Random.Range(0f, Mathf.PI * 2f);
+        }
+
         private void Update()
         {
-            // Smooth scale back to 1
+            // Smooth scale back to 1 after merge punch
             if (transform.localScale.x > 1.01f)
+            {
                 transform.localScale = Vector3.Lerp(transform.localScale, Vector3.one, Time.deltaTime * 8f);
+            }
+            else
+            {
+                // 🟢 Idle bounce — subtle breathing (±2% scaleY, phased per item)
+                float breath = 1f + Mathf.Sin(Time.time * 1.8f + _breathPhase) * 0.018f;
+                transform.localScale = new Vector3(1f, breath, 1f);
+            }
 
             // Producer cooldown tick (only while the produced chain is unlocked)
             if (Data != null && Data.IsProducer && !_produceReady && ProducerChainUnlocked())

@@ -7,7 +7,7 @@ namespace PocketGarden.Core
         public static GameManager Instance { get; private set; }
 
         private const string StartGemsKey = "PG_StartGemsGranted";
-        private const int StartingGems = 100; // early boost to fuel gem sinks (refill / skip)
+        private const int StartingGems = 50000; // TEMPORARY: generous test budget (revert to 100 before release)
 
         private void Awake()
         {

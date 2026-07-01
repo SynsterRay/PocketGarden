@@ -2,18 +2,18 @@
 
 ## 🔴 Blockers (przed release)
 
-- [ ] **GemSystem persistence** — `_gems = 10000` hardcoded do testów, PlayerPrefs zakomentowany. Odkomentować `Core/GemSystem.cs` linie 13–14.
-- [ ] **Tutorial tylko raz** — aktualnie wyświetla się przy KAŻDYM starcie. Dodać `PlayerPrefs` flag + przycisk "Jak grać?" w Settings.
-- [ ] **Save versioning** — brak wersji save'a. Dodać `saveVersion` int + migrator, żeby zmiany w quest ladder / item IDs nie psuły starych zapasów.
+- [x] **GemSystem persistence** — PlayerPrefs restored (was hardcoded to 10000 for testing).
+- [x] **Tutorial tylko raz** — shows only on first run (`PG_TutorialSeen` PlayerPrefs flag). "❓ How to Play" button in Settings re-triggers it.
+- [x] **Save versioning** — `GridSaveData.saveVersion` (currently v2) + sequential `Migrate()` method. Old saves with "twig_1" auto-convert to "wood_1".
 
 ---
 
 ## 🟡 Gameplay / UX (wysoki priorytet)
 
-- [ ] **Animacja dostarczenia** — item leci łukiem do karty questa → kurczy się → particle + checkmark. Największy brak "juiciness".
-- [ ] **Haptic feedback** — wibracja przy merge, dostarczeniu, tap generatora (`Handheld.Vibrate()` lub Input System haptics).
+- [x] **Animacja dostarczenia** — item leci łukiem do karty questa → kurczy się → checkmark + haptic (`UI/DeliveryAnimation.cs`).
+- [x] **Haptic feedback** — wibracja przy merge, dostarczeniu, tap generatora (`Handheld.Vibrate()`).
+- [x] **Board full handling** — potrząśnięcie siatki + popup "Plansza pełna!" z podpowiedzią (`UI/BoardFullPopup.cs`).
 - [ ] **Podgląd wymagań** — miniatura sprite'a wymaganego itemu na karcie questa.
-- [ ] **Board full handling** — potrząśnięcie siatki + popup "Plansza pełna!" z podpowiedzią.
 - [ ] **Undo / recycle** — tap+hold na item → "Recycle za 1💎?" Zapobiega dead-lockom.
 - [ ] **Streak multiplier** — szybkie merge'y w ciągu 2s → combo ×2/×3 na monety.
 - [ ] **Offline production** — generatory produkują offline (capped do 3 itemów max). Powód do powrotu.
@@ -22,11 +22,11 @@
 
 ## 🟢 Visual / Polish
 
-- [ ] **Idle bounce** — itemy na planszy delikatnie "oddychają" (sin scaleY ±2%, fazowane per item).
+- [x] **Idle bounce** — itemy na planszy delikatnie "oddychają" (sin scaleY ±2%, fazowane per item).
+- [x] **Particle trail** — podczas drag, delikatny ślad złotych iskier za przeciąganym itemem.
 - [ ] **Generator progress ring** — kołowy pasek postępu zamiast żółtego kwadratu.
 - [ ] **Tło z parallaxem** — 3 warstwy (chmury, wzgórza, trawa) z minimalnym ruchem.
 - [ ] **Transition wipe** — fade/circle-wipe przy otwieraniu Shop/Settings.
-- [ ] **Particle trail** — podczas drag, delikatny ślad iskier za przeciąganym itemem.
 - [ ] **Quest complete celebration** — confetti + krótka animacja gwiazdek po ukończeniu.
 
 ---
@@ -64,10 +64,10 @@
 
 ## Priorytety (sugerowana kolejność)
 
-1. GemSystem fix (5 min, blocker)
-2. Tutorial only once (15 min, UX blocker)
-3. Animacja dostarczenia (1h, juiciness)
-4. Haptic feedback (30 min)
+1. ~~GemSystem fix~~ ✅
+2. ~~Tutorial only once~~ ✅
+3. ~~Animacja dostarczenia~~ ✅
+4. ~~Haptic feedback~~ ✅
 5. Quest item preview (30 min)
 6. Analytics setup (1h, dane do decyzji)
 7. Background music (asset generation)

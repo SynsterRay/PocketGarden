@@ -54,6 +54,8 @@ namespace PocketGarden.Editor
             Ensure<UI.OfferManager>(c);
             Ensure<UI.CoinPopup>(c);
             Ensure<UI.SplashScreen>(c);
+            Ensure<UI.DeliveryAnimation>(c);
+            Ensure<UI.BoardFullPopup>(c);
 
             // EventSystem (required for UI clicks)
             if (Object.FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() == null)

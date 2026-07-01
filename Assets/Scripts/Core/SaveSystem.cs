@@ -7,7 +7,14 @@ namespace PocketGarden.Core
     [System.Serializable]
     public class GridSaveData
     {
+        public int saveVersion = CurrentVersion;
         public List<CellSave> cells = new();
+
+        /// <summary>
+        /// Bump this when quest ladder / item IDs change.
+        /// The migrator will handle upgrades from older versions.
+        /// </summary>
+        public const int CurrentVersion = 2;
     }
 
     [System.Serializable]
@@ -25,6 +32,7 @@ namespace PocketGarden.Core
         public static void SaveGrid(MergeGrid grid)
         {
             var data = new GridSaveData();
+            data.saveVersion = GridSaveData.CurrentVersion;
             for (int r = 0; r < grid.Rows; r++)
             {
                 for (int c = 0; c < grid.Cols; c++)
@@ -49,9 +57,39 @@ namespace PocketGarden.Core
         {
             string json = PlayerPrefs.GetString(GridKey, "");
             if (string.IsNullOrEmpty(json)) return null;
-            return JsonUtility.FromJson<GridSaveData>(json);
+
+            var data = JsonUtility.FromJson<GridSaveData>(json);
+            if (data == null) return null;
+
+            // Migrate from older versions.
+            data = Migrate(data);
+            return data;
         }
 
         public static bool HasSave() => !string.IsNullOrEmpty(PlayerPrefs.GetString(GridKey, ""));
+
+        /// <summary>
+        /// Applies sequential migrations so old saves don't break when item IDs or
+        /// the quest ladder change. Each version bump gets a migration step.
+        /// </summary>
+        private static GridSaveData Migrate(GridSaveData data)
+        {
+            // Version 0/1 → 2: "twig" items renamed to "wood_1" (Dead Tree).
+            // Old saves might still have "twig_1" or similar — map them.
+            if (data.saveVersion < 2)
+            {
+                foreach (var cell in data.cells)
+                {
+                    if (cell.itemId == "twig_1" || cell.itemId == "twig")
+                        cell.itemId = "wood_1";
+                }
+                data.saveVersion = 2;
+            }
+
+            // Future migrations go here:
+            // if (data.saveVersion < 3) { ... data.saveVersion = 3; }
+
+            return data;
+        }
     }
 }

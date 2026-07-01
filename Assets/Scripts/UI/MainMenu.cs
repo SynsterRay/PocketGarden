@@ -65,6 +65,12 @@ namespace PocketGarden.UI
                 Application.OpenURL("https://play.google.com/store/apps/details?id=com.WonderMindsGames.PocketGarden");
             });
 
+            AddRow(card.transform, "❓  How to Play", ref y, h, step, () =>
+            {
+                Hide();
+                TutorialOverlay.ShowTutorial();
+            });
+
             AddRow(card.transform, "ℹ️  Credits: Wonder Minds Games", ref y, h, step, () => { });
 
             AddRow(card.transform, "🗑️  Reset Progress", ref y, h, step, () =>
