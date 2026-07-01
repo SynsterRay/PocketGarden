@@ -11,9 +11,11 @@ women 25–45. Think *Merge Gardens* / *Gardenscapes* warmth.
 ## Import settings (Unity)
 - Texture Type: **Sprite (2D and UI)**
 - Mesh Type: **Full Rect**, Alpha Is Transparency: **on**, Mip Maps: **off**
-- Pixels Per Unit: **256** for merge items (so a 256px sprite ≈ 1 world unit, then scaled to the cell)
+- Sprite Mode: **Single**, Alignment: **Custom** (9) — pivot = content center
+- Pixels Per Unit: auto-calculated by `ItemSpriteImporter` (content-box / 0.72)
 - Compression: keep ≤ 512px for items, ≤ 1024px for backgrounds
 - Place files exactly at the **Resources path** shown (the game auto-loads by id).
+- Run **PocketGarden → Import Item Sprites** after adding new art (normalizes PPU + pivot).
 
 ---
 
@@ -96,10 +98,19 @@ Sliced from sheets in `pocket_garden_assets/stone_asset/` by `Tools/slice_stone.
 | file | size | Prompt |
 |------|------|--------|
 | logo_pocketgarden | 1024×512 | "Pocket Garden game logo, rounded playful lettering, a small flower dotting the i, pastel" |
-| developer_logo | 1024×1024 | "Wonder Minds Games logo, simple, friendly" |
+| developer_logo | 1024×1024 | ✅ Copied from Magic Pairs — studio splash logo |
 | app_icon | 512×512 | "app icon: a single cheerful potted flower, bold and readable at small size, flat 2D" |
 
-## 5. Generators (optional polish) — `Assets/Resources/Items/`  • 256×256
+## 5. Audio — `Assets/Resources/Audio/`
+| file | source | Usage |
+|------|--------|-------|
+| Card_Flip.wav | ✅ Magic Pairs | Merge sound effect |
+| Level_Complete.mp3 | ✅ Magic Pairs | Quest completion jingle |
+| In_Game_Music | ❌ needed | Background music loop (cozy garden ambience, ~2min) |
+| Menu_Music | ❌ needed | Main menu music (lighter, shorter loop) |
+| Button_Click | ❌ needed | UI button tap sound (short, soft click) |
+
+## 6. Generators (optional polish) — `Assets/Resources/Items/`  • 256×256
 | file | Prompt |
 |------|--------|
 | gen_garden | "a flower pot / seed bag generator, flat 2D, with a soft glow when ready" |

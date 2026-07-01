@@ -17,7 +17,7 @@ A cozy merge puzzle mobile game — Unity 6 with URP 2D, targeting Android/iOS. 
 | Energy System | ✅ | 30 max, +1/3min, offline regen |
 | Coin System | ✅ | Currency earned from quests |
 | Gem System | ✅ | Premium currency (IAP) |
-| Quest System | ✅ | 50 quests with creative descriptions, unlock chains |
+| Quest System | ✅ | 60 quests with creative descriptions, unlock chains |
 | Quest Drop Zone | ✅ | Green bar at bottom — drag items to deliver |
 | Generators | ✅ | 3 generators (Garden/Wood/Stone) with cooldown timers |
 | Generator Tap | ✅ | Tap yellow indicator to produce items |
@@ -120,6 +120,13 @@ Merge items on grid (5×7)
 6. Play
 
 ## Changelog
+
+### 2026-07-01
+- **Quest system expanded from 50 → 60 quests.** 10 new creative quests woven throughout the phases (not just appended at the end). New quest types: prepare flower garlands, craft birdhouses, build garden arches for weddings, stack stones for meditation gardens, build scaffolding, prepare mortar for the mason, collect wood for the workshop bench, gather dead trees for bonfires. Quest descriptions now use "dead trees" instead of the old "twigs" naming.
+- **Stone unlock moved to q35** (was q29). Wood still unlocks at q10. The quest ladder now has a longer Wood phase (q13-q35) for more crafting depth before introducing Stone.
+- **Progression.cs Grind phase threshold raised to q≥70** (was 60) to accommodate the 60-quest system. Stone phase covers q30-59.
+- **OfferManager bundle trigger updated** to fire at CompletedQuests == 35 (matching new Stone unlock).
+- **ART_PROMPTS.md expanded**: added App Icon (512×512), Feature Graphic (1024×500), 4 Store Screenshot mockups (1080×1920), Promotional Tile (180×120), and 6 Milestone Celebration Images (1080×1080 for q10/q20/q30/q40/q50/q60). Wood chain prompt updated to explicitly name "Dead Tree" for Lv1.
 
 ### 2026-06-30
 - **Uniform item sizing (alpha-trimmed content normalization).** The Garden art is cropped tight (content fills 100% of its canvas) while Wood/Stone art has large transparent margins (content ≈ 34–80%). Because PPU was baked from the *canvas* size, Garden items rendered visibly larger than Wood/Stone. `ItemSpriteImporter` now normalizes PPU by each sprite's **opaque content box** (animation folders share their folder's largest content box, preserving growth + matching the static), so every item shows at **0.72 world units** at `localScale = 1`. The on-disk `.meta` files were re-baked to this (offline `Tools/normalize_ppu.py`, mirrors the importer) since the importer hadn't been re-run. Garden shrinks ~28% to match Wood/Stone.

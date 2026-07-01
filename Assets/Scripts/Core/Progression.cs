@@ -7,10 +7,10 @@ namespace PocketGarden.Core
     /// tracks which merge chains the player has unlocked through quest progression.
     ///
     /// Phases (by completed-quest index, key "MG_QuestIndex"):
-    ///   Hook   (0-5)   : Garden only. Fast generators, fast energy regen, generous rewards.
-    ///   Wood   (6-10)  : Wood chain unlocked. Mature trees start producing Logs.
-    ///   Stone  (11-16) : Stone chain unlocked. Requirements escalate, regen slows.
-    ///   Grind  (17+)   : Endgame. High-level deliveries gate progress behind energy / packs.
+    ///   Hook   (0-9)   : Garden only. Fast generators, fast energy regen, generous rewards.
+    ///   Wood   (10-29) : Wood chain unlocked. Mature trees start producing Logs.
+    ///   Stone  (30-59) : Stone chain unlocked. Requirements escalate, regen slows.
+    ///   Grind  (60+)   : Endgame. High-level deliveries gate progress behind energy / packs.
     /// </summary>
     public static class Progression
     {
@@ -30,7 +30,7 @@ namespace PocketGarden.Core
             get
             {
                 int q = CompletedQuests;
-                if (q >= 60) return Phase.Grind;
+                if (q >= 70) return Phase.Grind;
                 if (q >= StoneUnlockQuest) return Phase.Stone;
                 if (q >= WoodUnlockQuest) return Phase.Wood;
                 return Phase.Hook;
@@ -43,7 +43,7 @@ namespace PocketGarden.Core
         // so existing saves whose quest index is already past the unlock quest aren't stuck).
         // Public so QuestManager builds the ladder against the same thresholds.
         public const int WoodUnlockQuest = 10;
-        public const int StoneUnlockQuest = 29;
+        public const int StoneUnlockQuest = 35;
 
         public static bool IsChainUnlocked(MergeChain chain)
         {

@@ -50,7 +50,7 @@ Nasionko (Lv1) → Sadzonka (Lv2) → Krzak (Lv3) → Kwiat (Lv4) → Drzewo (Lv
 
 **🪵 Drewno (Wood Chain)**
 ```
-Gałąź (Lv1) → Drewno (Lv2) → Deska (Lv3) → Skrzynka (Lv4) → Meble (Lv5) → Altanka (Lv6) → Domek (Lv7)
+Martwe Drzewo (Lv1) → Drewno (Lv2) → Deska (Lv3) → Skrzynka (Lv4) → Meble (Lv5) → Altanka (Lv6) → Domek (Lv7)
 ```
 
 **🪨 Kamień (Stone Chain)**
@@ -63,7 +63,7 @@ Kamyk (Lv1) → Kamień (Lv2) → Cegła (Lv3) → Mur (Lv4) → Kolumna (Lv5) �
 | Generator | Produkuje | Cooldown | Odblokowanie |
 |-----------|-----------|----------|--------------|
 | Krzak | Nasionko | 30s | Start |
-| Piła | Gałąź | 45s | Quest 3 |
+| Piła | Martwe Drzewo | 45s | Quest 3 |
 | Kamieniołom | Kamyk | 60s | Quest 7 |
 
 Generatory mają ograniczoną liczbę użyć → potem trzeba kupić nowy (gems) lub zdobyć z questa.

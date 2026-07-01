@@ -61,8 +61,8 @@ namespace PocketGarden.UI
             if (!CanShow()) return;
 
             // Entering the grind - offer the value bundle to maintain pace.
-            // Stone unlocks at q30, so q31+ is where we target the bundle.
-            if (Progression.CompletedQuests == 30)
+            // Stone unlocks at q35, so q36+ is where we target the bundle.
+            if (Progression.CompletedQuests == 35)
             {
                 ShowOffer(ShopCatalog.Get("growth_bundle"),
                     "The big builds begin!",
